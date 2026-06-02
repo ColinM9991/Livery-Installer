@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="LiveryInstaller.UI.Views.LiveryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:LiveryInstaller.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:LiveryPageViewModel}"
+             d:DesignHeight="300" d:DesignWidth="600" Background="Transparent">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="16,24,16,24">
+            <TextBlock Text="Filters" Foreground="#FFFFFF" FontSize="28" FontWeight="SemiBold" Margin="0, 0, 0, 24" />
+
+            <TextBlock Text="Products" Foreground="#FFFFFF" FontSize="14" />
+            <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedAircraft}"
+                      ItemsSource="{Binding AircraftOptions}" DisplayMemberPath="DisplayName" />
+
+            <TextBlock Text="Variants" Foreground="#FFFFFF" FontSize="14" />
+            <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedVariant}"
+                      ItemsSource="{Binding SelectedAircraftVariants}" DisplayMemberPath="Name" />
+
+            <TextBlock Text="Operators" Foreground="#FFFFFF" FontSize="14" />
+            <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedOperator}"
+                      ItemsSource="{Binding AvailableOperators}" />
+
+        </StackPanel>
+
+        <Border Grid.Column="1" BorderThickness="2, 0, 0, 0" BorderBrush="#2D2D2D" CornerRadius="8" />
+
+        <ScrollViewer Grid.Column="2"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto" Visibility="{Binding LiveriesPanelVisibility}">
+            <ItemsControl ItemsSource="{Binding SelectedVariantLiveries}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#2D2D2D"
+                                Width="320"
+                                Height="240"
+                                CornerRadius="8"
+                                Margin="12">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <Image Grid.Row="0"
+                                       Source="{Binding Icon}"
+                                       Stretch="Fill"
+                                       RenderOptions.BitmapScalingMode="LowQuality"
+                                       Loaded="FrameworkElement_OnLoaded" />
+
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding LiveryName}"
+                                           FontSize="18"
+                                           Margin="8, 8, 8, 16"
+                                           TextTrimming="CharacterEllipsis" />
+
+                                <Button Grid.Row="2" Content="Install" Background="Green" MinWidth="148"
+                                        Visibility="{Binding ShouldShowInstallButton}" HorizontalAlignment="Right"
+                                        Margin="0, 12, 6, 8" Command="{Binding InstallLiveryCommand}" />
+                                <Button Grid.Row="2" Content="Uninstall" Background="DarkRed" MinWidth="148"
+                                        Visibility="{Binding ShouldShowUninstallButton}" HorizontalAlignment="Right"
+                                        Margin="0, 12, 6, 8" Command="{Binding UninstallLiveryCommand}" />
+                                <ProgressBar Grid.Row="3" IsIndeterminate="True"
+                                             Visibility="{Binding ShouldShowProgress}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        
+        <TextBlock Visibility="{Binding WarningPanelVisibility}" Text="No liveries were found for the specified aircraft variant" FontSize="18" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
+</UserControl>
