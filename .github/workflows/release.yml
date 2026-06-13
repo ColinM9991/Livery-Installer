@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: 10.0.x
+  PROJECT_PATH: src/LiveryInstaller.UI/LiveryInstaller.UI.csproj
+  RUNTIME: win-x64
+  APP_NAME: LiveryInstaller
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract Version
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }} -r ${{ env.RUNTIME }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
+
+      - name: Publish
+        run: >
+          dotnet publish
+          ${{ env.PROJECT_PATH }}
+          --configuration Release
+          --runtime ${{ env.RUNTIME }}
+          --self-contained true
+          --no-build
+          -o publish
+          /p:Version=${{ steps.version.outputs.version }}
+          /p:PublishSingleFile=true
+          /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path publish\* `
+            -DestinationPath "${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.zip"
+
+      - name: Generate Release Notes
+        id: notes
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const previousRelease = releases.data
+              .filter(r => r.tag_name !== tag)
+              .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0];
+
+            const notes = await github.rest.repos.generateReleaseNotes({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              previous_tag_name: previousRelease?.tag_name
+            });
+
+            core.setOutput('body', notes.data.body);
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.body }}
+          files: |
+            ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.zip
