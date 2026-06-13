@@ -40,9 +40,6 @@ jobs:
       - name: Restore
         run: dotnet restore ${{ env.PROJECT_PATH }} -r ${{ env.RUNTIME }}
 
-      - name: Build
-        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore /p:Version=${{ steps.version.outputs.version }}
-
       - name: Publish
         run: >
           dotnet publish
@@ -50,11 +47,8 @@ jobs:
           --configuration Release
           --runtime ${{ env.RUNTIME }}
           --self-contained true
-          --no-build
           -o publish
           /p:Version=${{ steps.version.outputs.version }}
-          /p:PublishSingleFile=true
-          /p:IncludeNativeLibrariesForSelfExtract=true
 
       - name: Package
         shell: pwsh
