@@ -7,13 +7,23 @@ namespace LiveryInstaller.UI.Services;
 /// <inheritdoc />
 public class LiveryConfigurationService(
     IOptions<AircraftConfiguration> aircraftConfiguration,
+    IOptionsMonitor<UserSettings> userSettings,
+    ILiveryPathProvider liveryPathProvider,
     ISimulatorService simulatorService)
     : ILiveryConfigurationService
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<AircraftDto> GetAvailableAircraft() => aircraftConfiguration.Value.Aircraft
-        .Select(CreateAircraftDto).Where(x => x.Variants.Count > 0)
-        .ToList();
+    public IReadOnlyCollection<AircraftDto> GetAvailableAircraft()
+    {
+        if (string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath))
+            return [];
+        
+        return aircraftConfiguration.Value.Aircraft
+            .Where(x => liveryPathProvider.IsLiveryPathValid(x.Name))
+            .Select(CreateAircraftDto)
+            .Where(x => x.Variants.Count > 0)
+            .ToList();
+    }
     
     /// <summary>
     /// Creates a DTO for the given aircraft.

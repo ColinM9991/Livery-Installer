@@ -7,6 +7,10 @@
         <UseWPF>true</UseWPF>
         <SelfContained>true</SelfContained>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <StartupObject>LiveryInstaller.UI.Program</StartupObject>
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
@@ -24,6 +28,11 @@
         <None Update="liveryConfiguration.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ApplicationDefinition Remove="App.xaml"/>
+        <Page Include="App.xaml"/>
     </ItemGroup>
 
 </Project>

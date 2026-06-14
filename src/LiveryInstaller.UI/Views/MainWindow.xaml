@@ -24,11 +24,14 @@
                     </Style.Setters>
                 </Style>
             </Menu.Resources>
-            <MenuItem Header="Liveries" Command="{Binding NavigateToLiveriesPageCommand}" />
+            <MenuItem Header="Liveries" Command="{Binding NavigateToLiveriesPageCommand}"
+                      IsEnabled="{Binding IsLiveryPageEnabled}"
+                      ToolTip="You must first specify the liveries directory in the application settings"
+                      ToolTipService.ShowOnDisabled="True" />
             <MenuItem Header="Settings" Command="{Binding NavigateToSettingsPageCommand}" />
         </Menu>
         <Border Grid.Column="1" CornerRadius="8" Background="#202020">
-            <ContentControl  Content="{Binding Path=CurrentPage}" />
+            <ContentControl Content="{Binding Path=CurrentPage}" />
         </Border>
     </Grid>
 </Window>

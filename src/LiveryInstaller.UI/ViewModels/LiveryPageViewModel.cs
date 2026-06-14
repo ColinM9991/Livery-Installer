@@ -68,8 +68,8 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
 
     partial void OnSelectedVariantChanged(VariantDto value)
     {
-        _selectedVariantLiveries = value.Liveries
-            .Select(x => _liveryViewModelFactory.Create(SelectedAircraft, value, x)).ToList();
+        _selectedVariantLiveries = value?.Liveries
+            .Select(x => _liveryViewModelFactory.Create(SelectedAircraft, value, x)).ToList() ?? [];
 
         SelectedOperator = AllOperatorsOption;
         OnPropertyChanged(nameof(SelectedVariantLiveries));
