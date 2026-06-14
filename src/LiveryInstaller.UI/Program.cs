@@ -1,12 +1,16 @@
-﻿using LiveryInstaller.UI.Models.Configuration;
+﻿using LiveryInstaller.UI.Models;
+using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.ViewModels;
 using LiveryInstaller.UI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Win32;
 using Serilog;
+using Serilog.Core;
 using Velopack;
 using Velopack.Sources;
 
@@ -32,28 +36,40 @@ public static class Program
             DisableDefaults = false
         });
 
+        builder.Logging.ClearProviders();
+
         builder.Configuration
             .AddJsonFile(SettingsStore.SettingsFile, optional: true, reloadOnChange: true)
             .AddJsonFile("liveryConfiguration.json", optional: false, reloadOnChange: false)
             .AddEnvironmentVariables();
 
-        builder.Services.AddSerilog(logger =>
+        builder.Services.AddSerilog((services, logger) =>
         {
+            var loggingLevelSwitch = services.GetRequiredService<LoggingLevelSwitch>();
+
             logger
                 .ReadFrom
                 .Configuration(builder.Configuration)
-                .WriteTo.Console();
+                .MinimumLevel.ControlledBy(loggingLevelSwitch);
         });
 
         ConfigureServices(builder.Services, builder.Configuration);
 
         var host = builder.Build();
-        
-        VelopackApp.Build().Run();
+        var services = host.Services;
 
+        var userSettings = services.GetRequiredService<IOptionsMonitor<UserSettings>>();
+        var loggingLevelSwitch = services.GetRequiredService<LoggingLevelSwitch>();
+
+        userSettings.OnChange(x =>
+        {
+            loggingLevelSwitch.MinimumLevel = x.LogLevel.ToSerilogLevel();
+        });
+
+        VelopackApp.Build().Run();
         if (builder.Environment.IsProduction())
         {
-            var applicationUpdater = host.Services.GetRequiredService<IApplicationUpdaterService>();
+            var applicationUpdater = services.GetRequiredService<IApplicationUpdaterService>();
             var updateInfo = applicationUpdater.CheckForUpdatesAsync().GetAwaiter().GetResult();
             if (updateInfo is not null)
             {
@@ -72,9 +88,10 @@ public static class Program
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<LiveryPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
-        
+        services.AddSingleton<LoggingLevelSwitch>();
+
         services.AddSingleton<IApplicationUpdaterService, ApplicationUpdaterService>();
-        services.AddSingleton<UpdateManager>(_ =>
+        services.AddSingleton(_ =>
             new UpdateManager(new GithubSource(UpdateUrl, null, false)));
 
         services.AddSingleton<IIconService, IconService>();
