@@ -103,7 +103,8 @@ public partial class LiveryViewModel(
         IsInstalled = false;
     }
 
-    private bool CanExecuteInstallLiveryCommand() => !IsInvokingCommand && !IsInstalled;
+    private bool CanExecuteInstallLiveryCommand() =>
+        !IsInvokingCommand && !IsInstalled && !string.IsNullOrWhiteSpace(LiveryPath);
 
     private bool CanExecuteUninstallLiveryCommand() => !IsInvokingCommand && IsInstalled;
 }

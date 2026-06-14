@@ -12,7 +12,18 @@ public class LiveryPathProvider(IOptionsMonitor<UserSettings> userSettings) : IL
     public string GetLiveryPath(string aircraftName, string variantName, string liveryName) =>
         Path.Combine(userSettings.CurrentValue.LiveriesPath, aircraftName, variantName, $"{liveryName}.ptp");
 
-    public bool IsLiveryPathValid(string aircraftName) => !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath) &&
-                                                          Path.Exists(Path.Combine(userSettings.CurrentValue.LiveriesPath,
-                                                              aircraftName));
+    public bool IsAircraftPathValid(string aircraftName) =>
+        !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath) &&
+        Directory.Exists(Path.Combine(userSettings.CurrentValue.LiveriesPath,
+            aircraftName));
+
+    public bool IsVariantPathValid(string aircraftName, string variantName) =>
+        !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath) &&
+        Directory.Exists(Path.Combine(userSettings.CurrentValue.LiveriesPath,
+            aircraftName, variantName));
+
+    public bool IsLiveryPathValid(string aircraftName, string variantName, string liveryName) =>
+        !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath) &&
+        File.Exists(Path.Combine(userSettings.CurrentValue.LiveriesPath,
+            aircraftName, variantName, $"{liveryName}.ptp"));
 }

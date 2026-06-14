@@ -63,7 +63,7 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
 
     partial void OnSelectedAircraftChanged(AircraftDto value)
     {
-        SelectedVariant = value.Variants.FirstOrDefault();
+        SelectedVariant = value?.Variants.FirstOrDefault();
     }
 
     partial void OnSelectedVariantChanged(VariantDto value)

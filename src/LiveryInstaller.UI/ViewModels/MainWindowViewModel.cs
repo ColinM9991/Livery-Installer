@@ -16,10 +16,9 @@ public partial class MainWindowViewModel : ObservableObject, IPage
         IOptionsMonitor<UserSettings> userSettings)
     {
         _navigationService = navigationService;
-        
-        IsLiveryPageEnabled = !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath);
-        
-        userSettings.OnChange(_ => IsLiveryPageEnabled = !string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath));
+
+        IsLiveryPageEnabled = IsLiveryPageAvailable(userSettings.CurrentValue);
+        userSettings.OnChange(_ => IsLiveryPageEnabled = IsLiveryPageAvailable(userSettings.CurrentValue));
         
         CurrentPage = IsLiveryPageEnabled
             ? _navigationService.GetPage<LiveryPageViewModel>()
@@ -37,4 +36,6 @@ public partial class MainWindowViewModel : ObservableObject, IPage
     
     [RelayCommand]
     public void NavigateToSettingsPage() => CurrentPage = _navigationService.GetPage<SettingsPageViewModel>();
+    
+    private bool IsLiveryPageAvailable(UserSettings userSettings) => !string.IsNullOrWhiteSpace(userSettings.LiveriesPath) && !string.IsNullOrWhiteSpace(userSettings.DecryptionKey);
 }

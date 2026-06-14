@@ -17,37 +17,44 @@ public class LiveryConfigurationService(
     {
         if (string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath))
             return [];
-        
+
         return aircraftConfiguration.Value.Aircraft
-            .Where(x => liveryPathProvider.IsLiveryPathValid(x.Name))
+            .Where(x => liveryPathProvider.IsAircraftPathValid(x.Name))
             .Select(CreateAircraftDto)
             .Where(x => x.Variants.Count > 0)
             .ToList();
     }
-    
+
     /// <summary>
     /// Creates a DTO for the given aircraft.
     /// </summary>
     /// <param name="aircraft">The aircraft to create a DTO for.</param>
     /// <returns>The created DTO.</returns>
     private AircraftDto CreateAircraftDto(Aircraft aircraft) => new(aircraft.Name,
-        aircraft.Variants.Where(x => simulatorService.IsAircraftInstalled(x.Name))
-            .Select(CreateVariantDto).ToList());
+        aircraft.Variants.Where(x =>
+                liveryPathProvider.IsVariantPathValid(aircraft.Name, x.Name) &&
+                simulatorService.IsAircraftInstalled(x.Name))
+            .Select(x => CreateVariantDto(aircraft, x))
+            .Where(x => x.Liveries.Count > 0).ToList());
 
     /// <summary>
     /// Creates a DTO for the given variant.
     /// </summary>
+    /// <param name="aircraft">The aircraft the variant belongs to.</param>
     /// <param name="variant">The variant to create a DTO for.</param>
     /// <returns>The created DTO.</returns>
-    private static VariantDto CreateVariantDto(Variant variant) =>
-        new(variant.Name, variant.Liveries.Select(CreateLiveryDto).ToList());
+    private VariantDto CreateVariantDto(Aircraft aircraft, Variant variant) =>
+        new(variant.Name,
+            variant.Liveries.Where(x =>
+                    liveryPathProvider.IsLiveryPathValid(aircraft.Name, variant.Name, x.SanitisedName))
+                .Select(CreateLiveryDto).ToList());
 
     /// <summary>
     /// Creates a DTO for the given livery.
     /// </summary>
     /// <param name="livery">The livery to create a DTO for.</param>
     /// <returns>The created DTO.</returns>
-    private static LiveryDto CreateLiveryDto(Livery livery) => new(livery.TextureId, livery.AtcId,
+    private LiveryDto CreateLiveryDto(Livery livery) => new(livery.TextureId, livery.AtcId,
         livery.Name,
         livery.Description, livery.Airline, livery.SanitisedName);
 }

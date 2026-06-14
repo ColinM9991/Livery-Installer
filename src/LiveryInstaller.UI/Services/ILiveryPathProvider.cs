@@ -6,5 +6,9 @@ public interface ILiveryPathProvider
     
     string GetLiveryPath(string aircraftName, string variantName, string liveryName);
 
-    bool IsLiveryPathValid(string aircraftName);
+    bool IsAircraftPathValid(string aircraftName);
+
+    bool IsVariantPathValid(string aircraftName, string variantName);
+    
+    bool IsLiveryPathValid(string aircraftName, string variantName, string liveryName);
 }

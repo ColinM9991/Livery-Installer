@@ -43,9 +43,9 @@ public static class Program
 
         services.AddScoped<MainWindow>();
 
-        services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<LiveryPageViewModel>();
-        services.AddSingleton<SettingsPageViewModel>();
+        services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<LiveryPageViewModel>();
+        services.AddTransient<SettingsPageViewModel>();
 
         services.AddSingleton<IIconService, IconService>();
         services.AddSingleton<ISettingsStore, SettingsStore>();

@@ -9,29 +9,28 @@ using Microsoft.Win32;
 
 namespace LiveryInstaller.UI.ViewModels;
 
-public partial class SettingsPageViewModel : ObservableObject, IPage
+public partial class SettingsPageViewModel(
+    ISettingsStore settingsStore,
+    IOptionsMonitor<UserSettings> userSettings)
+    : ObservableObject, IPage
 {
-    private readonly ISettingsStore _settingsStore;
-    
-    public SettingsPageViewModel(
-        ISettingsStore settingsStore,
-        IOptions<UserSettings> userSettings)
+    public LogLevel? LogLevel
     {
-        _settingsStore = settingsStore;
-        
-        LogLevel = userSettings.Value.LogLevel;
-        LiveriesPath = userSettings.Value.LiveriesPath;
-        DecryptionKey = userSettings.Value.DecryptionKey;
+        get => field ??= userSettings.CurrentValue.LogLevel;
+        set => SetProperty(ref field, value);
     }
     
-    [ObservableProperty]
-    public partial LogLevel LogLevel { get; set; }
-    
-    [ObservableProperty]
-    public partial string LiveriesPath { get; set; }
-    
-    [ObservableProperty]
-    public partial string DecryptionKey { get; set; }
+    public string LiveriesPath
+    {
+        get => field ??= userSettings.CurrentValue.LiveriesPath;
+        set => SetProperty(ref field, value); 
+    }
+
+    public string DecryptionKey
+    {
+        get => field ??= userSettings.CurrentValue.DecryptionKey;
+        set => SetProperty(ref field, value);
+    }
     
     public static IReadOnlyCollection<LogLevel> AvailableLogLevels => Enum.GetValues<LogLevel>();
 
@@ -48,9 +47,9 @@ public partial class SettingsPageViewModel : ObservableObject, IPage
     }
     
     [RelayCommand(AllowConcurrentExecutions = false)]
-    private async Task SaveSettings() => await _settingsStore.SaveSettingsAsync(new UserSettings
+    private async Task SaveSettings() => await settingsStore.SaveSettingsAsync(new UserSettings
     {
-        LogLevel = LogLevel,
+        LogLevel = LogLevel.GetValueOrDefault(),
         LiveriesPath = LiveriesPath,
         DecryptionKey = DecryptionKey
     });
