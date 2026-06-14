@@ -20,7 +20,7 @@ public sealed class VariantConfigurationService(ISimulatorService simulatorServi
         if (File.Exists(targetIni))
             File.Delete(targetIni);
 
-        File.Move(aircraftIni, targetIni);
+        File.Copy(aircraftIni, targetIni);
     }
 
     /// <inheritdoc />

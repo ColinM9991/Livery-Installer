@@ -13,7 +13,7 @@ public sealed class TextureInstallService(
     {
         logger.LogInformation("Installing texture {TextureId} for variant {VariantName}", textureId, variantName);
         
-        Directory.Move(
+        CopyDirectory(
             Path.Combine(sourceArchiveDirectory, $"Texture.{textureId}"),
             simulatorService.GetLiveryPath(variantName, textureId));
     }
@@ -27,5 +27,27 @@ public sealed class TextureInstallService(
 
         if (Directory.Exists(liveryPath))
             Directory.Delete(liveryPath, true);
+    }
+
+    private void CopyDirectory(string source, string destination)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+
+        logger.LogInformation("Copying directory {Source} to {Destination}", source, destination);
+
+        if (Directory.Exists(destination))
+        {
+            logger.LogWarning("Directory {Destination} already exists, deleting it", destination);
+            Directory.Delete(destination, true);
+        }
+
+        Directory.CreateDirectory(destination);
+
+        foreach (var file in Directory.GetFiles(source))
+        {
+            var targetFile = Path.Combine(destination, Path.GetFileName(file));
+            File.Copy(file, targetFile, overwrite: true);
+        }
     }
 }
