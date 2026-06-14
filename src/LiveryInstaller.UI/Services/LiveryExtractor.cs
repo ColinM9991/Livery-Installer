@@ -15,7 +15,7 @@ public class LiveryExtractor(
     /// <inheritdoc />
     public string ExtractLivery(string liveryPath)
     {
-        var extractor = CreateExtractor();
+        using var extractor = CreateExtractor();
         if (!extractor.IsFileCabinet(liveryPath, out _))
         {
             logger.LogError("Livery {Livery} is not a valid file cabinet", liveryPath);
