@@ -5,8 +5,8 @@ using LiveryInstaller.UI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using Serilog;
 
 namespace LiveryInstaller.UI;
 
@@ -15,32 +15,28 @@ public static class Program
     [STAThread]
     private static void Main(string[] args)
     {
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(builder => { builder.SetMinimumLevel(LogLevel.Information).AddConsole(); })
-            .ConfigureAppConfiguration(builder =>
-            {
-                builder
-                    .AddJsonFile(SettingsStore.SettingsFile, optional: true, reloadOnChange: true)
-                    .AddJsonFile("liveryConfiguration.json", optional: false, reloadOnChange: false)
-                    .AddEnvironmentVariables();
-            })
-            .ConfigureServices(ConfigureServices)
-            .Build();
+        var builder = Host.CreateApplicationBuilder(args);
 
-        var serviceProvider = host.Services;
+        builder.Configuration
+            .AddJsonFile(SettingsStore.SettingsFile, optional: true, reloadOnChange: true)
+            .AddJsonFile("liveryConfiguration.json", optional: false, reloadOnChange: false)
+            .AddEnvironmentVariables();
 
-        var app = new App();
-        var mainWindow = serviceProvider.GetRequiredService<MainWindow>();
+        builder.Services.AddSerilog((services, logger) =>
+        {
+            logger.ReadFrom.Configuration(builder.Configuration);
+        });
 
-        app.SetStartupWindow(mainWindow);
-        app.InitializeComponent();
+        ConfigureServices(builder.Services, builder.Configuration);
+
+        var host = builder.Build();
+
+        var app = new App(host);
         app.Run();
     }
 
-    private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        var configuration = context.Configuration;
-
         services.AddScoped<MainWindow>();
 
         services.AddTransient<MainWindowViewModel>();
