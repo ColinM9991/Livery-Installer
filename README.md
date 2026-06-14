@@ -1,5 +1,18 @@
 # PMDG Livery Installer for Prepar3D
 
+## Notice
+
+For now this does requires one of the following:
+
+1. Your user requires Modify permissions on the Prepar3D installation folder.
+2. You are running this as an administrator.
+
+This is because the tool needs to install liveries into the Prepar3D installation folder under:
+- <Prepar3D installation folder>\SimObjects\Airplanes
+- <Prepar3D installation folder>\PMDG\<Variant>\Aircraft
+
+Writing to directories in `C:\Program Files` typically requires elevated or explicit permissions.
+
 ## Description
 
 A tool for installing PMDG liveries for Lockheed Martin's Prepar3D v5.
