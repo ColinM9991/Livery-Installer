@@ -7,22 +7,37 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Win32;
 using Serilog;
+using Velopack;
+using Velopack.Sources;
 
 namespace LiveryInstaller.UI;
 
 public static class Program
 {
+    private const string UpdateUrl = "https://github.com/ColinM9991/Livery-Installer";
+    private static readonly string EnvironmentName =
+#if DEBUG
+        Environments.Development;
+#else
+        Environments.Production;
+#endif
+
     [STAThread]
     private static void Main(string[] args)
     {
-        var builder = Host.CreateApplicationBuilder(args);
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            Args = args,
+            EnvironmentName = EnvironmentName,
+            DisableDefaults = false
+        });
 
         builder.Configuration
             .AddJsonFile(SettingsStore.SettingsFile, optional: true, reloadOnChange: true)
             .AddJsonFile("liveryConfiguration.json", optional: false, reloadOnChange: false)
             .AddEnvironmentVariables();
 
-        builder.Services.AddSerilog((services, logger) =>
+        builder.Services.AddSerilog(logger =>
         {
             logger
                 .ReadFrom
@@ -33,6 +48,18 @@ public static class Program
         ConfigureServices(builder.Services, builder.Configuration);
 
         var host = builder.Build();
+        
+        VelopackApp.Build().Run();
+
+        if (builder.Environment.IsProduction())
+        {
+            var applicationUpdater = host.Services.GetRequiredService<IApplicationUpdaterService>();
+            var updateInfo = applicationUpdater.CheckForUpdatesAsync().GetAwaiter().GetResult();
+            if (updateInfo is not null)
+            {
+                applicationUpdater.ApplyUpdateAsync(updateInfo).GetAwaiter().GetResult();
+            }
+        }
 
         var app = new App(host);
         app.Run();
@@ -40,11 +67,15 @@ public static class Program
 
     private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<MainWindow>();
+        services.AddSingleton<MainWindow>();
 
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<LiveryPageViewModel>();
         services.AddTransient<SettingsPageViewModel>();
+        
+        services.AddSingleton<IApplicationUpdaterService, ApplicationUpdaterService>();
+        services.AddSingleton<UpdateManager>(_ =>
+            new UpdateManager(new GithubSource(UpdateUrl, null, false)));
 
         services.AddSingleton<IIconService, IconService>();
         services.AddSingleton<ISettingsStore, SettingsStore>();

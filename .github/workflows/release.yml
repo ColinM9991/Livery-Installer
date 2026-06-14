@@ -50,12 +50,8 @@ jobs:
           -o publish
           /p:Version=${{ steps.version.outputs.version }}
 
-      - name: Package
-        shell: pwsh
-        run: |
-          Compress-Archive `
-            -Path publish\* `
-            -DestinationPath "${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.zip"
+      - name: Install vpk
+        run: dotnet tool install -g vpk
 
       - name: Generate Release Notes
         id: notes
@@ -83,6 +79,24 @@ jobs:
 
             core.setOutput('body', notes.data.body);
 
+      - name: Write Release Notes File
+        shell: pwsh
+        run: |
+          Set-Content -Path release_notes.md -Value @"
+          ${{ steps.notes.outputs.body }}
+          "@
+
+      - name: Pack with vpk
+        shell: pwsh
+        run: |
+          vpk pack `
+            --packId ${{ env.APP_NAME }} `
+            --packVersion ${{ steps.version.outputs.version }} `
+            --packDir publish `
+            --mainExe ${{ env.APP_NAME }}.UI.exe `
+            --outputDir ./Releases `
+            --releaseNotes "release_notes.md"
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -90,4 +104,4 @@ jobs:
           name: ${{ github.ref_name }}
           body: ${{ steps.notes.outputs.body }}
           files: |
-            ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.zip
+            Releases/*
