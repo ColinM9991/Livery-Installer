@@ -5,7 +5,9 @@ using Microsoft.Extensions.Options;
 namespace LiveryInstaller.UI.Services;
 
 /// <inheritdoc />
-public sealed class SimulatorService(IOptions<SimulatorConfiguration> simulatorConfiguration) : ISimulatorService
+public sealed class SimulatorService(
+    IFileSystem fileSystem,
+    IOptions<SimulatorConfiguration> simulatorConfiguration) : ISimulatorService
 {
     private string InstallationPath => simulatorConfiguration.Value.InstallationPath;
 
@@ -13,11 +15,11 @@ public sealed class SimulatorService(IOptions<SimulatorConfiguration> simulatorC
 
     /// <inheritdoc />
     public bool IsAircraftInstalled(string variantName) =>
-        Directory.Exists(GetVariantPath(variantName));
+        fileSystem.DirectoryExists(GetVariantPath(variantName));
 
     /// <inheritdoc />
     public bool IsLiveryInstalled(string variantName, string textureId) =>
-        Directory.Exists(GetLiveryPath(variantName, textureId));
+        fileSystem.DirectoryExists(GetLiveryPath(variantName, textureId));
 
     /// <inheritdoc />
     public string GetLiveryPath(string variantName, string textureId) =>

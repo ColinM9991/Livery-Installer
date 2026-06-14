@@ -24,7 +24,10 @@ public static class Program
 
         builder.Services.AddSerilog((services, logger) =>
         {
-            logger.ReadFrom.Configuration(builder.Configuration);
+            logger
+                .ReadFrom
+                .Configuration(builder.Configuration)
+                .WriteTo.Console();
         });
 
         ConfigureServices(builder.Services, builder.Configuration);
@@ -55,6 +58,7 @@ public static class Program
         services.AddSingleton<ILiveryInstallService, LiveryInstallService>();
         services.AddSingleton<ILiveryExtractor, LiveryExtractor>();
         services.AddSingleton<ITextureInstallService, TextureInstallService>();
+        services.AddSingleton<IFileSystem, FileSystem>();
 
         services.AddSingleton<IAircraftConfigurationDeserializer, AircraftConfigurationDeserializer>();
         services.AddSingleton<IAircraftConfigurationSerializer, AircraftConfigurationSerializer>();

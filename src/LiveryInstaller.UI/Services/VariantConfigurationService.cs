@@ -4,7 +4,9 @@ using Microsoft.Extensions.Logging;
 namespace LiveryInstaller.UI.Services;
 
 /// <inheritdoc />
-public sealed class VariantConfigurationService(ISimulatorService simulatorService,
+public sealed class VariantConfigurationService(
+    IFileSystem fileSystem,
+    ISimulatorService simulatorService,
     ILogger<VariantConfigurationService> logger) : IVariantConfigurationService
 {
     /// <inheritdoc />
@@ -17,10 +19,10 @@ public sealed class VariantConfigurationService(ISimulatorService simulatorServi
         
         ArgumentNullException.ThrowIfNull(targetIni);
 
-        if (File.Exists(targetIni))
-            File.Delete(targetIni);
+        if (fileSystem.FileExists(targetIni))
+            fileSystem.FileDelete(targetIni);
 
-        File.Copy(aircraftIni, targetIni);
+        fileSystem.FileCopy(aircraftIni, targetIni);
     }
 
     /// <inheritdoc />
@@ -30,8 +32,8 @@ public sealed class VariantConfigurationService(ISimulatorService simulatorServi
         
         var targetIni = GetIniPath(aircraftName, atcId);
 
-        if (File.Exists(targetIni))
-            File.Delete(targetIni);
+        if (fileSystem.FileExists(targetIni))
+            fileSystem.FileDelete(targetIni);
     }
 
     private string GetIniPath(string aircraftName, string atcId) => Path.Combine(
