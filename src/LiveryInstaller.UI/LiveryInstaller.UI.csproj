@@ -49,4 +49,9 @@
         <Page Include="App.xaml"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Images\FallbackIcon.png" />
+      <Resource Include="Images\FallbackIcon.png" />
+    </ItemGroup>
+
 </Project>

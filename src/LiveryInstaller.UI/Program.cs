@@ -94,7 +94,8 @@ public static class Program
         services.AddSingleton(_ =>
             new UpdateManager(new GithubSource(UpdateUrl, null, false)));
 
-        services.AddSingleton<IIconService, IconService>();
+        services.AddSingleton<IconService>();
+        services.AddSingleton<IIconService, CachingIconService>(sp => new CachingIconService(sp.GetRequiredService<IconService>()));
         services.AddSingleton<ISettingsStore, SettingsStore>();
         services.AddSingleton<INavigationService, NavigationService>();
 
