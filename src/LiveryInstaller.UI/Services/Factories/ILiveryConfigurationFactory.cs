@@ -11,5 +11,5 @@ public interface ILiveryConfigurationFactory
     /// Get available aircraft
     /// </summary>
     /// <returns>Available aircraft configurations. </returns>
-    IReadOnlyCollection<AircraftDto> GetAvailableAircraft();
+    Task<IReadOnlyCollection<AircraftDto>> GetAvailableAircraftAsync();
 }

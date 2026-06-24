@@ -56,7 +56,7 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterFactoryServices(IServiceCollection services)
     {
-        services.AddSingleton<ILiveryConfigurationFactory, AircraftDtoFactory>();
+        services.AddSingleton<ILiveryConfigurationFactory, LiveryConfigurationFactory>();
         services.AddSingleton<IAvailableLiveryFactory, AvailableLiveryFactory>();
         services.AddSingleton<ILiveryViewModelFactory, LiveryViewModelFactory>();
         services.AddSingleton<ILoadedLiveryFactory, LoadedLiveryFactory>();

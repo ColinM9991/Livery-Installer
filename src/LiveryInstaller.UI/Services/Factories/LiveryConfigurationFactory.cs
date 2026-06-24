@@ -1,12 +1,14 @@
 ﻿using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Models.DTO;
-using LiveryInstaller.UI.Services.Factories;
+using LiveryInstaller.UI.Services.Configuration;
+using LiveryInstaller.UI.Services.Liveries;
 using Microsoft.Extensions.Options;
 
-namespace LiveryInstaller.UI.Services.Liveries;
+namespace LiveryInstaller.UI.Services.Factories;
 
 /// <inheritdoc />
-public class AircraftDtoFactory(
+public class LiveryConfigurationFactory(
+    IReadableConfigurationStore<LiveriesConfiguration> readStore,
     IOptionsMonitor<AircraftConfiguration> aircraftConfiguration,
     IOptionsMonitor<UserSettings> userSettings,
     ILiveryPathProvider liveryPathProvider,
@@ -14,12 +16,15 @@ public class AircraftDtoFactory(
     : ILiveryConfigurationFactory
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<AircraftDto> GetAvailableAircraft()
+    public async Task<IReadOnlyCollection<AircraftDto>> GetAvailableAircraftAsync()
     {
         if (string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath))
             return [];
 
-        return aircraftConfiguration.CurrentValue.Aircraft
+        var userImportedLiveries = await readStore.ReadAsync();
+        var merged = Merge(aircraftConfiguration.CurrentValue.Aircraft, userImportedLiveries.AircraftConfiguration.Aircraft);
+
+        return merged
             .Where(x => liveryPathProvider.IsAircraftPathValid(x.Name))
             .Select(CreateAircraftDto)
             .Where(x => x.Variants.Count > 0)
@@ -56,4 +61,39 @@ public class AircraftDtoFactory(
     /// <param name="livery">The livery to create a DTO for.</param>
     /// <returns>The created DTO.</returns>
     private static LiveryDto CreateLiveryDto(Livery livery) => new(livery);
+
+    private static List<Aircraft> Merge(ICollection<Aircraft> first, ICollection<Aircraft> second)
+    {
+        var copy = new List<Aircraft>(first);
+        foreach (var aircraft in second)
+        {
+            var liveryConfigurationAircraft = copy.FirstOrDefault(x => x.Name == aircraft.Name);
+            if (liveryConfigurationAircraft == null)
+            {
+                copy.Add(aircraft);
+                liveryConfigurationAircraft = aircraft;
+            }
+                
+            foreach (var variant in aircraft.Variants)
+            {
+                var liveryAircraftVariant = liveryConfigurationAircraft.Variants.FirstOrDefault(x => x.Name == variant.Name);
+                if (liveryAircraftVariant == null)
+                {
+                    liveryConfigurationAircraft.Variants.Add(variant);
+                    liveryAircraftVariant = variant;
+                }
+                    
+                foreach (var livery in variant.Liveries)
+                {
+                    var liveryAircraftVariantLivery = liveryAircraftVariant.Liveries.FirstOrDefault(x => x.TextureId == livery.TextureId);
+                    if (liveryAircraftVariantLivery == null)
+                    {
+                        liveryAircraftVariant.Liveries.Add(livery);
+                    }
+                }
+            }
+        }
+
+        return copy;
+    }
 }

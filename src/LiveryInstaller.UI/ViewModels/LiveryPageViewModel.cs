@@ -10,19 +10,27 @@ namespace LiveryInstaller.UI.ViewModels;
 public partial class LiveryPageViewModel : ObservableObject, IPage
 {
     private const string AllOperatorsOption = "All";
+    private readonly ILiveryConfigurationFactory _liveryConfigurationFactory;
     private readonly ILiveryViewModelFactory _liveryViewModelFactory;
     private IReadOnlyList<LiveryViewModel> _selectedVariantLiveries = [];
+
+    [ObservableProperty] private IReadOnlyCollection<AircraftDto> _aircraftOptions;
 
     public LiveryPageViewModel(
         ILiveryConfigurationFactory liveryConfigurationFactory,
         ILiveryViewModelFactory liveryViewModelFactory)
     {
+        _liveryConfigurationFactory = liveryConfigurationFactory;
         _liveryViewModelFactory = liveryViewModelFactory;
-        AircraftOptions = liveryConfigurationFactory.GetAvailableAircraft();
-        SelectedAircraft = AircraftOptions.FirstOrDefault();
+        _ = InitializeAsync();
     }
 
-    public IReadOnlyCollection<AircraftDto> AircraftOptions { get; }
+
+    private async Task InitializeAsync()
+    {
+        AircraftOptions = await _liveryConfigurationFactory.GetAvailableAircraftAsync();
+        SelectedAircraft = AircraftOptions.FirstOrDefault();
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedAircraftVariants))]
