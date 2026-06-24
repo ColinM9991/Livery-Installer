@@ -35,7 +35,10 @@ public partial class MainWindowViewModel : ObservableObject, IPage
     public void NavigateToLiveriesPage() => CurrentPage = _navigationService.GetPage<LiveryPageViewModel>();
     
     [RelayCommand]
+    public void NavigateToLiveryImportPage() => CurrentPage = _navigationService.GetPage<ImportLiveryPageViewModel>();
+    
+    [RelayCommand]
     public void NavigateToSettingsPage() => CurrentPage = _navigationService.GetPage<SettingsPageViewModel>();
     
-    private bool IsLiveryPageAvailable(UserSettings userSettings) => !string.IsNullOrWhiteSpace(userSettings.LiveriesPath) && !string.IsNullOrWhiteSpace(userSettings.DecryptionKey);
+    private bool IsLiveryPageAvailable(UserSettings userSettings) => !string.IsNullOrWhiteSpace(userSettings.LiveriesPath);
 }

@@ -2,15 +2,14 @@
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models;
 using LiveryInstaller.UI.Models.Configuration;
-using LiveryInstaller.UI.Services;
+using LiveryInstaller.UI.Services.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Win32;
 
 namespace LiveryInstaller.UI.ViewModels;
 
 public partial class SettingsPageViewModel(
-    ISettingsStore settingsStore,
+    IWriteableConfigurationStore<UserSettings> writeableConfigurationStore,
     IOptionsMonitor<UserSettings> userSettings)
     : ObservableObject, IPage
 {
@@ -34,20 +33,8 @@ public partial class SettingsPageViewModel(
     
     public static IReadOnlyCollection<LogLevel> AvailableLogLevels => Enum.GetValues<LogLevel>();
 
-    [RelayCommand]
-    private void FolderPicker()
-    {
-        var openFolderDialog = new OpenFolderDialog();
-        var result = openFolderDialog.ShowDialog();
-        
-        if (result == true)
-        {
-            LiveriesPath = openFolderDialog.FolderName;
-        }
-    }
-    
     [RelayCommand(AllowConcurrentExecutions = false)]
-    private async Task SaveSettings() => await settingsStore.SaveSettingsAsync(new UserSettings
+    private async Task SaveSettings() => await writeableConfigurationStore.WriteAsync(new UserSettings
     {
         LogLevel = LogLevel.GetValueOrDefault(),
         LiveriesPath = LiveriesPath,

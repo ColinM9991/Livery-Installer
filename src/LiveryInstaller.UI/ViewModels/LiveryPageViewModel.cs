@@ -2,7 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveryInstaller.UI.Models;
 using LiveryInstaller.UI.Models.DTO;
-using LiveryInstaller.UI.Services;
+using LiveryInstaller.UI.Services.Factories;
+using LiveryInstaller.UI.Services.Liveries;
 
 namespace LiveryInstaller.UI.ViewModels;
 
@@ -13,11 +14,11 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
     private IReadOnlyList<LiveryViewModel> _selectedVariantLiveries = [];
 
     public LiveryPageViewModel(
-        ILiveryConfigurationService liveryConfigurationService,
+        ILiveryConfigurationFactory liveryConfigurationFactory,
         ILiveryViewModelFactory liveryViewModelFactory)
     {
         _liveryViewModelFactory = liveryViewModelFactory;
-        AircraftOptions = liveryConfigurationService.GetAvailableAircraft();
+        AircraftOptions = liveryConfigurationFactory.GetAvailableAircraft();
         SelectedAircraft = AircraftOptions.FirstOrDefault();
     }
 

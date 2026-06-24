@@ -2,7 +2,8 @@
 
 public interface IFileSystem
 {
-
+    void DirectoryCreate(string path);
+    
     bool DirectoryExists(string path);
 
     void DirectoryDelete(string path);

@@ -28,6 +28,10 @@
                       IsEnabled="{Binding IsLiveryPageEnabled}"
                       ToolTip="You must first specify the liveries directory in the application settings"
                       ToolTipService.ShowOnDisabled="True" />
+            <MenuItem Header="Import" Command="{Binding NavigateToLiveryImportPageCommand}"
+                      IsEnabled="{Binding IsLiveryPageEnabled}"
+                      ToolTip="You must first specify the liveries directory in the application settings"
+                      ToolTipService.ShowOnDisabled="True" />
             <MenuItem Header="Settings" Command="{Binding NavigateToSettingsPageCommand}" />
         </Menu>
         <Border Grid.Column="1" CornerRadius="8" Background="#202020">

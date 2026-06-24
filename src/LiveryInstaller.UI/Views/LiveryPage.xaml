@@ -16,7 +16,7 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Margin="16,24,16,24">
-            <TextBlock Text="Filters" Foreground="#FFFFFF" FontSize="28" FontWeight="SemiBold" Margin="0, 0, 0, 24" />
+            <TextBlock Text="Filters" Style="{StaticResource PageHeading}" />
 
             <TextBlock Text="Products" Foreground="#FFFFFF" FontSize="14" />
             <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedAircraft}"
@@ -71,21 +71,25 @@
                                            Margin="8, 8, 8, 16"
                                            TextTrimming="CharacterEllipsis" />
 
-                                <Button Grid.Row="2" Content="Install" Background="Green" MinWidth="148"
-                                        Visibility="{Binding ShouldShowInstallButton}" HorizontalAlignment="Right"
-                                        Margin="0, 12, 6, 8" Command="{Binding InstallLiveryCommand}" />
-                                <Button Grid.Row="2" Content="Uninstall" Background="DarkRed" MinWidth="148"
-                                        Visibility="{Binding ShouldShowUninstallButton}" HorizontalAlignment="Right"
-                                        Margin="0, 12, 6, 8" Command="{Binding UninstallLiveryCommand}" />
+                                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <Button Content="Install" Background="Green" MinWidth="148"
+                                            Visibility="{Binding ShouldShowInstallButton, Converter={StaticResource BooleanToVisibility}}"
+                                            Margin="0, 12, 6, 8" Command="{Binding InstallLiveryCommand}" />
+                                    <Button Content="Uninstall" Background="DarkRed" MinWidth="148"
+                                            Visibility="{Binding ShouldShowUninstallButton, Converter={StaticResource BooleanToVisibility}}"
+                                            Margin="0, 12, 6, 8" Command="{Binding UninstallLiveryCommand}" />
+                                </StackPanel>
                                 <ProgressBar Grid.Row="3" IsIndeterminate="True"
-                                             Visibility="{Binding ShouldShowProgress}" />
+                                             Visibility="{Binding ShouldShowProgress, Converter={StaticResource BooleanToVisibility}}" />
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-        
-        <TextBlock Visibility="{Binding WarningPanelVisibility}" Text="No liveries were found for the specified aircraft variant" FontSize="18" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <TextBlock Visibility="{Binding WarningPanelVisibility}"
+                   Text="No liveries were found for the specified aircraft variant" FontSize="18" Grid.Column="2"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
 </UserControl>

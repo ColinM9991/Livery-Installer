@@ -74,6 +74,8 @@ public class AircraftConfiguration
         }
     }
 
+    public FlightSimSectionNode GetFirstFlightSimSection() => GetSections<FlightSimSectionNode>().FirstOrDefault();
+    
     /// <summary>
     /// Finds the flight sim section with the given ATC ID.
     /// </summary>

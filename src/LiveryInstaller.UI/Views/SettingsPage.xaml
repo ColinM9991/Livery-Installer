@@ -7,8 +7,7 @@
              xmlns:uc="clr-namespace:LiveryInstaller.UI.UserControls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SettingsPageViewModel}"
-             d:DesignHeight="450" d:DesignWidth="800"
-             Background="Transparent">
+             d:DesignHeight="450" d:DesignWidth="800">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <Grid>
             <Grid.RowDefinitions>
@@ -16,28 +15,32 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Margin="16,24,16,24" MinWidth="600">
-                <TextBlock Text="Settings" FontSize="28" FontWeight="SemiBold" Foreground="#FFFFFF"
-                           Margin="0, 0, 0, 24" />
+                <TextBlock Text="Settings" Style="{StaticResource PageHeading}" />
 
-                <uc:SettingsCard Icon="📂" Title="Liveries path"
+                <uc:InputControl Icon="📂" Title="Liveries path"
                                  Description="Select the directory containing all raw PTP files">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" Text="{Binding LiveriesPath}" />
-                        <Button Grid.Column="1" Height="36" Content="🔎" Margin="5, 0, 0, 0" Command="{Binding FolderPickerCommand}" ToolTip="Select the directory containing the liveries" />
-                    </Grid>
-                </uc:SettingsCard>
+                    <uc:InputControl.CardContent>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <uc:FilePickerControl Path="{Binding LiveriesPath, Mode=TwoWay}" Type="Folder"  />
+                        </Grid>
+                    </uc:InputControl.CardContent>
+                </uc:InputControl>
 
-                <uc:SettingsCard Icon="🗝️" Title="Decryption key" Description="The decryption key for the PTP files">
-                    <TextBox Text="{Binding DecryptionKey}" />
-                </uc:SettingsCard>
+                <!-- <uc:InputControl Icon="🗝️" Title="Decryption key" Description="The decryption key for the PTP files"> -->
+                <!--     <uc:InputControl.CardContent> -->
+                <!--         <TextBox Text="{Binding DecryptionKey}" /> -->
+                <!--     </uc:InputControl.CardContent> -->
+                <!-- </uc:InputControl> -->
 
-                <uc:SettingsCard Icon="📝" Title="Log level" Description="The logging level for log events">
-                    <ComboBox SelectedValue="{Binding LogLevel}" ItemsSource="{Binding AvailableLogLevels}" />
-                </uc:SettingsCard>
+                <uc:InputControl Icon="📝" Title="Log level" Description="The logging level for log events">
+                    <uc:InputControl.CardContent>
+                        <ComboBox SelectedValue="{Binding LogLevel}" ItemsSource="{Binding AvailableLogLevels}" />
+                    </uc:InputControl.CardContent>
+                </uc:InputControl>
             </StackPanel>
             <Button Grid.Row="1" Content="Save" HorizontalAlignment="Right" Margin="0,0,16,12"
                     Command="{Binding SaveSettingsCommand}" />

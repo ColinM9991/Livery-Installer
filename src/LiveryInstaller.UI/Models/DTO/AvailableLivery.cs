@@ -22,7 +22,7 @@ public class AvailableLivery
         VariantName = variant.Name;
         TextureId = livery.TextureId;
         AtcId = livery.AtcId;
-        SanitisedName = livery.SanitisedName;
+        IsUserImported = livery.IsUserImported;
     }
     
     public string LiveryName { get; }
@@ -36,8 +36,8 @@ public class AvailableLivery
     public string TextureId { get; }
 
     public string AtcId { get; }
-
-    public string SanitisedName { get; }
+    
+    public bool IsUserImported { get; }
 
     public bool IsInstalled { get; set; }
     

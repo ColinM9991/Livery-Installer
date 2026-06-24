@@ -37,4 +37,6 @@ public class FlightSimSectionNode : SectionNode
         Index = index;
         SectionName = $"fltsim.{Index}";
     }
+    
+    public string GetValue(string key) => Values.OfType<KeySectionValue>().FirstOrDefault(x => x.Key == key)?.Value;
 }

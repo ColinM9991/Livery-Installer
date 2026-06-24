@@ -12,16 +12,16 @@ namespace LiveryInstaller.UI;
 /// </summary>
 public partial class App : Application
 {
-    private readonly IHost _host;
+    private readonly IServiceScope _scope;
 
     public App(IHost host)
     {
-        _host = host;
+        _scope = host.Services.CreateScope();
         
         InitializeComponent();
     }
     
-    private ILogger<App> Logger => _host.Services.GetRequiredService<ILogger<App>>();
+    private ILogger<App> Logger => _scope.ServiceProvider.GetRequiredService<ILogger<App>>();
     
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -29,8 +29,14 @@ public partial class App : Application
         
         base.OnStartup(e);
         
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        var mainWindow = _scope.ServiceProvider.GetRequiredService<MainWindow>();
         mainWindow.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _scope?.Dispose();
+        base.OnExit(e);
     }
 
     private void RegisterExceptionHandlers()

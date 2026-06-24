@@ -10,12 +10,12 @@ public sealed class KeySectionValue(string key, string value) : SectionValue
     /// <summary>
     /// The key of the key-value pair.
     /// </summary>
-    private string Key { get; } = key;
+    public string Key { get; } = key;
     
     /// <summary>
     /// The value of the key-value pair.
     /// </summary>
-    private string Value { get; } = value;
+    public string Value { get; } = value;
 
     /// <summary>
     /// Converts the key-value pair to a string.

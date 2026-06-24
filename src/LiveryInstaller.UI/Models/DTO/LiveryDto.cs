@@ -1,18 +1,53 @@
-﻿namespace LiveryInstaller.UI.Models.DTO;
+﻿using LiveryInstaller.UI.Models.Configuration;
+
+namespace LiveryInstaller.UI.Models.DTO;
 
 /// <summary>
 /// Represents a livery.
 /// </summary>
-/// <param name="TextureId">Texture ID.</param>
-/// <param name="AtcId">ATC ID.</param>
-/// <param name="Name">Livery name.</param>
-/// <param name="Description">Livery description.</param>
-/// <param name="Airline">Livery airline.</param>
-/// <param name="SanitisedName">Sanitised livery name.</param>
-public record LiveryDto(
-    string TextureId,
-    string AtcId,
-    string Name,
-    string Description,
-    string Airline,
-    string SanitisedName);
+public record LiveryDto
+{
+    public LiveryDto()
+    {
+    }
+
+    public LiveryDto(
+        string textureId,
+        string atcId,
+        string name,
+        string description,
+        string airline,
+        string sanitisedName)
+    {
+        TextureId = textureId;
+        AtcId = atcId;
+        Name = name;
+        Description = description;
+        Airline = airline;
+        SanitisedName = sanitisedName;
+    }
+
+    public LiveryDto(Livery livery)
+    {
+        TextureId = livery.TextureId;
+        AtcId = livery.AtcId;
+        Name = livery.Name;
+        Description = livery.Description;
+        Airline = livery.Airline;
+        SanitisedName = livery.SanitisedName;
+        IsUserImported = livery.IsUserImported;
+    }
+    public string TextureId { get; set; }
+    
+    public string AtcId { get; set; }
+    
+    public string Name { get; set; }
+    
+    public string Description { get; set; }
+    
+    public string Airline { get; set; }
+    
+    public string SanitisedName { get; set; }
+    
+    public bool IsUserImported { get; set; }
+}
