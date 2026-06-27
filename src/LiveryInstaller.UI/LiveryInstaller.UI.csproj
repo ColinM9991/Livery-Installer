@@ -51,6 +51,14 @@
     <ItemGroup>
       <None Remove="Images\FallbackIcon.png" />
       <Resource Include="Images\FallbackIcon.png" />
+      <None Remove="Images\error.png" />
+      <Resource Include="Images\error.png" />
+      <None Remove="Images\info.png" />
+      <Resource Include="Images\info.png" />
+      <None Remove="Images\success.png" />
+      <Resource Include="Images\success.png" />
+      <None Remove="Images\warning.png" />
+      <Resource Include="Images\warning.png" />
     </ItemGroup>
 
 </Project>

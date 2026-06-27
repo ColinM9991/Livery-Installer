@@ -30,8 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SettingsPageViewModel>();
         services.AddSingleton<ToastControlViewModel>();
 
-        services.AddScoped<INavigationService, NavigationService>();
-        services.AddScoped<IToastService, ToastService>();
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IToastService, ToastService>();
         services.AddSingleton<IMessenger, WeakReferenceMessenger>();
         services.AddSingleton<IApplicationUpdaterService, ApplicationUpdaterService>();
         services.AddSingleton<ISimulatorService, SimulatorService>();

@@ -5,6 +5,5 @@ public enum ToastLevel
     Success,
     Information,
     Warning,
-    Error,
-    Critical
+    Error
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models;
 using LiveryInstaller.UI.Models.DTO;
+using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Icons;
 using LiveryInstaller.UI.Services.Liveries;
 
@@ -10,7 +11,8 @@ namespace LiveryInstaller.UI.ViewModels;
 
 public partial class ImportLiveryPageViewModel(
     ILiveryImportService liveryImportService,
-    IIconService iconService) : ObservableObject, IPage
+    IIconService iconService,
+    IToastService toastService) : ObservableObject, IPage
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanImport))]
@@ -33,7 +35,7 @@ public partial class ImportLiveryPageViewModel(
     public partial bool IsLoaded { get; set; }
 
     [ObservableProperty] public partial bool WasImportSuccessful { get; set; }
-    
+
     [ObservableProperty] public partial bool IsLoading { get; set; }
 
     public bool CanImport => !string.IsNullOrWhiteSpace(LiveryFile) && IsLoaded;
@@ -41,25 +43,37 @@ public partial class ImportLiveryPageViewModel(
     [RelayCommand(CanExecute = nameof(CanImport))]
     private async Task ImportAsync()
     {
-        await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
+        try
+        {
+            toastService.Information($"Importing livery {LoadedLivery.Livery.Name}");
 
-        IsLoading = false;
-        LoadedLivery = null;
-        Icon = null;
-        LiveryFile = null;
-        IconFile = null;
-        IsLoaded = false;
+            await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
 
-        WasImportSuccessful = true;
+            toastService.Success("Livery imported successfully");
 
-        ImportCommand.NotifyCanExecuteChanged();
+            IsLoading = false;
+            LoadedLivery = null;
+            Icon = null;
+            LiveryFile = null;
+            IconFile = null;
+            IsLoaded = false;
+
+            WasImportSuccessful = true;
+
+            ImportCommand.NotifyCanExecuteChanged();
+        }
+        catch
+        {
+            toastService.Error("Failed to import livery. Please refer to the log");
+            WasImportSuccessful = false;
+        }
     }
 
     async partial void OnLiveryFileChanged(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return;
-        
+
         LoadedLivery = null;
         Icon = null;
         IsLoaded = false;
@@ -80,7 +94,7 @@ public partial class ImportLiveryPageViewModel(
     {
         if (string.IsNullOrWhiteSpace(value))
             return;
-        
+
         WasImportSuccessful = false;
         Icon = await Task.Run(() => iconService.GetIconAsync(value));
     }

@@ -20,11 +20,12 @@ public partial class LiveryViewModel(
     SimulatorType simulatorType,
     AvailableLivery livery,
     ILiveryInstallService liveryInstallService,
-    IIconService iconService)
+    IIconService iconService,
+    IToastService toastService)
     : ObservableObject
 {
     private SimulatorType SelectedSimulator => simulatorType;
-    
+
     public string LiveryName => livery.LiveryName;
 
     public string Airline => livery.Airline;
@@ -34,11 +35,11 @@ public partial class LiveryViewModel(
     private string VariantName => livery.VariantName;
 
     private string LiveryPath => livery.LiveryPath;
-    
+
     private string IconPath => livery.IconPath;
 
     public bool IsUserImported => livery.IsUserImported;
-    
+
     [ObservableProperty] public partial ImageSource Icon { get; set; }
 
     [ObservableProperty] private partial bool IsIconLoading { get; set; }
@@ -48,27 +49,27 @@ public partial class LiveryViewModel(
     [NotifyCanExecuteChangedFor(nameof(UninstallLiveryCommand))]
     [NotifyPropertyChangedFor(nameof(ShouldShowProgress))]
     private partial bool IsInvokingCommand { get; set; }
-    
+
     public bool ShouldShowInstallButton => !IsInstalled;
-    
+
     public bool ShouldShowProgress => IsInvokingCommand;
-    
+
     public bool ShouldShowUninstallButton => IsInstalled;
-    
-    private  bool IsInstalled
+
+    private bool IsInstalled
     {
         get => livery.IsInstalled;
         set
         {
             if (value == livery.IsInstalled)
                 return;
-            
+
             livery.IsInstalled = value;
             OnPropertyChanged();
-            
+
             OnPropertyChanged(nameof(ShouldShowInstallButton));
             OnPropertyChanged(nameof(ShouldShowUninstallButton));
-            
+
             InstallLiveryCommand.NotifyCanExecuteChanged();
             UninstallLiveryCommand.NotifyCanExecuteChanged();
         }
@@ -86,7 +87,7 @@ public partial class LiveryViewModel(
         IsIconLoading = true;
 
         Icon = await iconService.GetIconAsync(IconPath);
-        
+
         IsIconLoading = false;
     }
 
@@ -94,19 +95,47 @@ public partial class LiveryViewModel(
     private async Task InstallLiveryAsync()
     {
         IsInvokingCommand = true;
-        
-        await liveryInstallService.InstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
 
-        IsInvokingCommand = false;
-        IsInstalled = true;
+        try
+        {
+            toastService.Information($"Installing livery {livery.LiveryName}");
+
+            await Task.Run(() => liveryInstallService.InstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator,
+                AircraftName,
+                VariantName, LiveryPath, livery.TextureId, livery.AtcId)));
+
+            toastService.Success("Livery installed successfully");
+
+            IsInstalled = true;
+        }
+        catch
+        {
+            toastService.Error("Failed to install livery. Please refer to the log");
+        }
+        finally
+        {
+            IsInvokingCommand = false;
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteUninstallLiveryCommand))]
     private async Task UninstallLiveryAsync()
     {
         IsInvokingCommand = true;
-        
-        await liveryInstallService.UninstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
+
+        try
+        {
+            toastService.Information($"Uninstalling livery {livery.LiveryName}");
+            
+            await liveryInstallService.UninstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName,
+                VariantName, LiveryPath, livery.TextureId, livery.AtcId));
+            
+            toastService.Success("Livery uninstalled successfully");
+        }
+        catch
+        {
+            toastService.Error("Failed to uninstall livery. Please refer to the log");
+        }
 
         IsInvokingCommand = false;
         IsInstalled = false;

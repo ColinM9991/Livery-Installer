@@ -56,7 +56,24 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="ℹ️" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
+                    <Image Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Width="25" Height="25" >
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Source" Value="pack://application:,,,/LiveryInstaller.UI;component/Images/info.png" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Level, ElementName=Self}" Value="Success">
+                                        <Setter Property="Source" Value="pack://application:,,,/LiveryInstaller.UI;component/Images/success.png" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Level, ElementName=Self}" Value="Warning">
+                                        <Setter Property="Source" Value="pack://application:,,,/LiveryInstaller.UI;component/Images/warning.png" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Level, ElementName=Self}" Value="Error">
+                                        <Setter Property="Source" Value="pack://application:,,,/LiveryInstaller.UI;component/Images/error.png" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
                     <StackPanel Grid.Column="1" Margin="5, 0, 0, 0">
                         <TextBlock Text="{Binding Title, ElementName=Self}"
                                    Visibility="{Binding TitleVisibility, ElementName=Self, Converter={StaticResource BooleanToVisibility}}"
