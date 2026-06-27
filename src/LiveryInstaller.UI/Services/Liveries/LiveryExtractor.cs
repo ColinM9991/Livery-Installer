@@ -1,9 +1,7 @@
 using System.IO;
 using CabLib;
 using LiveryInstaller.UI.Helpers;
-using LiveryInstaller.UI.Models.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace LiveryInstaller.UI.Services.Liveries;
 

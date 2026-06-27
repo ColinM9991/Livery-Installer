@@ -28,7 +28,7 @@ public sealed class LiveryImportService(
     {
         var variantDirectory =
             Path.Combine(userSettings.CurrentValue.LiveriesPath, livery.AircraftFamily, livery.Variant);
-        
+
         var iconsPath = Path.Combine(variantDirectory, "icons");
 
         fileSystem.DirectoryCreate(variantDirectory);
@@ -38,9 +38,9 @@ public sealed class LiveryImportService(
             var fileExtension = Path.GetExtension(iconFile);
             fileSystem.FileCopy(iconFile, Path.Combine(iconsPath, $"{livery.Livery.SanitisedName}{fileExtension}"));
         }
-        
+
         fileSystem.FileCopy(livery.PackagePath, Path.Combine(variantDirectory, $"{livery.Livery.SanitisedName}.ptp"));
-        
+
         await liveryConfigurationService.InstallLiveryAsync(livery.AircraftFamily, livery.Variant, livery.Livery);
     }
 }

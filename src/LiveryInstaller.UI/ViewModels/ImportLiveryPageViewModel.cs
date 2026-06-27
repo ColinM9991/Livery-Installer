@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models;
 using LiveryInstaller.UI.Models.DTO;
-using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Icons;
 using LiveryInstaller.UI.Services.Liveries;
 
@@ -11,8 +10,7 @@ namespace LiveryInstaller.UI.ViewModels;
 
 public partial class ImportLiveryPageViewModel(
     ILiveryImportService liveryImportService,
-    IIconService iconService,
-    IToastService toastService) : ObservableObject, IPage
+    IIconService iconService) : ObservableObject, IPage
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanImport))]
@@ -45,11 +43,7 @@ public partial class ImportLiveryPageViewModel(
     {
         try
         {
-            toastService.Information($"Importing livery {LoadedLivery.Livery.Name}");
-
             await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
-
-            toastService.Success("Livery imported successfully");
 
             IsLoading = false;
             LoadedLivery = null;
@@ -64,7 +58,6 @@ public partial class ImportLiveryPageViewModel(
         }
         catch
         {
-            toastService.Error("Failed to import livery. Please refer to the log");
             WasImportSuccessful = false;
         }
     }

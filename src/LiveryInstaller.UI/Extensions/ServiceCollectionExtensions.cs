@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMessenger, WeakReferenceMessenger>();
         services.AddSingleton<IApplicationUpdaterService, ApplicationUpdaterService>();
         services.AddSingleton<ISimulatorService, SimulatorService>();
-        
+
         services.AddSingleton<IFileSystem, FileSystem>();
         services.AddSingleton<LoggingLevelSwitch>();
 
@@ -51,8 +51,14 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterLiveryServices(IServiceCollection services)
     {
-        services.AddSingleton<ILiveryInstallService, LiveryInstallService>();
-        services.AddSingleton<ILiveryImportService, LiveryImportService>();
+        services.AddSingleton<ILiveryInstallService, LiveryInstallService>()
+            .Decorate<ILiveryInstallService, LoggingLiveryInstallService>()
+            .Decorate<ILiveryInstallService, NotifyingLiveryInstallService>();
+
+        services.AddSingleton<ILiveryImportService, LiveryImportService>()
+            .Decorate<ILiveryImportService, LoggingLiveryImportService>()
+            .Decorate<ILiveryImportService, NotifyingLiveryImportService>();
+        
         services.AddSingleton<ITextureInstallService, TextureInstallService>();
         services.AddSingleton<ILiveryPathProvider, LiveryPathProvider>();
         services.AddSingleton<ILiveryExtractor, LiveryExtractor>();
@@ -78,9 +84,9 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterIconServices(IServiceCollection services)
     {
-        services.AddSingleton<IconService>();
-        services.AddSingleton<IIconService, CachingIconService>(sp =>
-            new CachingIconService(sp.GetRequiredService<IconService>()));
+        services
+            .AddSingleton<IIconService, IconService>()
+            .Decorate<IIconService, CachingIconService>();
     }
 
     private static void RegisterParsingServices(IServiceCollection services)

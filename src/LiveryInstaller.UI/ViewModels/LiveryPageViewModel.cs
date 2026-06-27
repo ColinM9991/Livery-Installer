@@ -1,11 +1,9 @@
 ﻿using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveryInstaller.UI.Models;
-using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Models.DTO;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Factories;
-using LiveryInstaller.UI.Services.Liveries;
 
 namespace LiveryInstaller.UI.ViewModels;
 

@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models.Configuration;
@@ -20,8 +19,7 @@ public partial class LiveryViewModel(
     SimulatorType simulatorType,
     AvailableLivery livery,
     ILiveryInstallService liveryInstallService,
-    IIconService iconService,
-    IToastService toastService)
+    IIconService iconService)
     : ObservableObject
 {
     private SimulatorType SelectedSimulator => simulatorType;
@@ -98,19 +96,11 @@ public partial class LiveryViewModel(
 
         try
         {
-            toastService.Information($"Installing livery {livery.LiveryName}");
-
             await Task.Run(() => liveryInstallService.InstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator,
                 AircraftName,
-                VariantName, LiveryPath, livery.TextureId, livery.AtcId)));
-
-            toastService.Success("Livery installed successfully");
+                VariantName, livery)));
 
             IsInstalled = true;
-        }
-        catch
-        {
-            toastService.Error("Failed to install livery. Please refer to the log");
         }
         finally
         {
@@ -125,20 +115,16 @@ public partial class LiveryViewModel(
 
         try
         {
-            toastService.Information($"Uninstalling livery {livery.LiveryName}");
-            
             await liveryInstallService.UninstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName,
-                VariantName, LiveryPath, livery.TextureId, livery.AtcId));
-            
-            toastService.Success("Livery uninstalled successfully");
+                VariantName, livery));
+
+            IsInvokingCommand = false;
+            IsInstalled = false;
         }
         catch
         {
-            toastService.Error("Failed to uninstall livery. Please refer to the log");
+            // Do nothing, swallow exception. Services log and notify the user
         }
-
-        IsInvokingCommand = false;
-        IsInstalled = false;
     }
 
     private bool CanExecuteInstallLiveryCommand() =>

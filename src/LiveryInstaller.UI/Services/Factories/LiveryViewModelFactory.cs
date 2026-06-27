@@ -9,8 +9,7 @@ namespace LiveryInstaller.UI.Services.Factories;
 public class LiveryViewModelFactory(
     IAvailableLiveryFactory availableLiveryFactory,
     ILiveryInstallService liveryInstallService,
-    IIconService iconService,
-    IToastService toastService)
+    IIconService iconService)
     : ILiveryViewModelFactory
 {
     public LiveryViewModel Create(SimulatorType simulatorType, AircraftDto aircraft, VariantDto variant, LiveryDto livery)
@@ -20,6 +19,6 @@ public class LiveryViewModelFactory(
         ArgumentNullException.ThrowIfNull(livery);
 
         var availableLivery = availableLiveryFactory.Create(simulatorType, aircraft, variant, livery);
-        return new LiveryViewModel(simulatorType, availableLivery, liveryInstallService, iconService, toastService);
+        return new LiveryViewModel(simulatorType, availableLivery, liveryInstallService, iconService);
     }
 }

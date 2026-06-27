@@ -18,6 +18,11 @@ public sealed class ToastService(IMessenger messenger) : IToastService
     /// <inheritdoc />
     public void Error(string message) => SubmitToast(ToastLevel.Error, message);
 
+    /// <summary>
+    /// Raises a <see cref="ToastMessage"/> with the given level and message.
+    /// </summary>
+    /// <param name="level">The toast level.</param>
+    /// <param name="message">The message to display.</param>
     private void SubmitToast(ToastLevel level, string message)
     {
         messenger.Send(new ToastMessage(message, level));
