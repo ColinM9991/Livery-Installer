@@ -6,6 +6,7 @@ namespace LiveryInstaller.UI.Services.Configuration;
 /// <summary>
 /// Represents a service that can manage aircraft configurations.
 /// </summary>
+[LoggingDecorator]
 public interface IAircraftConfigurationService
 {
     /// <summary>

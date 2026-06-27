@@ -1,6 +1,5 @@
 ﻿using LiveryInstaller.UI.Models.DTO;
 using LiveryInstaller.UI.Services.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace LiveryInstaller.UI.Services.Liveries;
 

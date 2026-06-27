@@ -3,6 +3,7 @@
 /// <summary>
 /// Represents a service that can extract liveries from a given path.
 /// </summary>
+[LoggingDecorator]
 public interface ILiveryExtractor
 {
     /// <summary>

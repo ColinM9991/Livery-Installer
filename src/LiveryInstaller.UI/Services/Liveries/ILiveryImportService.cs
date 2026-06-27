@@ -5,6 +5,7 @@ namespace LiveryInstaller.UI.Services.Liveries;
 /// <summary>
 /// Represents a service responsible for loading and importing livery files.
 /// </summary>
+[LoggingDecorator]
 public interface ILiveryImportService
 {
     /// <summary>

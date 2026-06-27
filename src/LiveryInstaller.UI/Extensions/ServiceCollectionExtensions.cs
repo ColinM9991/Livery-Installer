@@ -59,9 +59,13 @@ public static class ServiceCollectionExtensions
             .Decorate<ILiveryImportService, LoggingLiveryImportService>()
             .Decorate<ILiveryImportService, NotifyingLiveryImportService>();
         
-        services.AddSingleton<ITextureInstallService, TextureInstallService>();
+        services.AddSingleton<ITextureInstallService, TextureInstallService>()
+            .Decorate<ITextureInstallService, LoggingTextureInstallService>();
+        
+        services.AddSingleton<ILiveryExtractor, LiveryExtractor>()
+            .Decorate<ILiveryExtractor, LoggingLiveryExtractor>();
+        
         services.AddSingleton<ILiveryPathProvider, LiveryPathProvider>();
-        services.AddSingleton<ILiveryExtractor, LiveryExtractor>();
     }
 
     private static void RegisterFactoryServices(IServiceCollection services)
@@ -74,12 +78,18 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterConfigurationServices(IServiceCollection services)
     {
+        services.AddSingleton<ILiveryConfigurationService, LiveryConfigurationService>()
+            .Decorate<ILiveryConfigurationService, LoggingLiveryConfigurationService>();
+        
+        services.AddSingleton<IVariantConfigurationService, VariantConfigurationService>()
+            .Decorate<IVariantConfigurationService, LoggingVariantConfigurationService>();
+        
+        services.AddSingleton<IAircraftConfigurationService, AircraftConfigurationService>()
+            .Decorate<IAircraftConfigurationService, LoggingAircraftConfigurationService>();
+        
         services.AddSingleton<IWriteableConfigurationStore<UserSettings>, UserConfigurationStore>();
         services.AddSingleton<IReadableConfigurationStore<LiveriesConfiguration>, LiveriesConfigurationStore>();
         services.AddSingleton<IWriteableConfigurationStore<LiveriesConfiguration>, LiveriesConfigurationStore>();
-        services.AddSingleton<ILiveryConfigurationService, LiveryConfigurationService>();
-        services.AddSingleton<IAircraftConfigurationService, AircraftConfigurationService>();
-        services.AddSingleton<IVariantConfigurationService, VariantConfigurationService>();
     }
 
     private static void RegisterIconServices(IServiceCollection services)

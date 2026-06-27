@@ -1,7 +1,6 @@
 using System.IO;
 using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Services.Parsing;
-using Microsoft.Extensions.Logging;
 using AircraftConfiguration = LiveryInstaller.UI.Models.INI.AircraftConfiguration;
 
 namespace LiveryInstaller.UI.Services.Configuration;
@@ -10,14 +9,11 @@ namespace LiveryInstaller.UI.Services.Configuration;
 public sealed class AircraftConfigurationService(
     ISimulatorService simulatorService,
     IAircraftConfigurationDeserializer aircraftConfigurationDeserializer,
-    IAircraftConfigurationSerializer aircraftConfigurationSerializer,
-    ILogger<AircraftConfigurationService> logger) : IAircraftConfigurationService
+    IAircraftConfigurationSerializer aircraftConfigurationSerializer) : IAircraftConfigurationService
 {
     /// <inheritdoc />
     public async Task AddLiveryAsync(SimulatorType simulatorType, string variantName, string archiveDirectory)
     {
-        logger.LogInformation("Adding livery for variant {VariantName}", variantName);
-
         var aircraftConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
         var tempConfigPath = Path.Combine(archiveDirectory, "Config.cfg");
 
@@ -32,8 +28,6 @@ public sealed class AircraftConfigurationService(
     /// <inheritdoc />
     public async Task RemoveLiveryAsync(SimulatorType simulatorType, string variantName, string atcId)
     {
-        logger.LogInformation("Removing livery for variant {VariantName} with ATC ID {AtcId}", variantName, atcId);
-
         var variantConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
 
         var aircraftConfiguration = await LoadAircraftConfigurationAsync(variantConfigPath);

@@ -5,6 +5,7 @@ namespace LiveryInstaller.UI.Services.Liveries;
 /// <summary>
 /// Represents a service that can install and uninstall liveries.
 /// </summary>
+[LoggingDecorator]
 public interface ILiveryInstallService
 {
     /// <summary>

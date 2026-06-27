@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Models.DTO;
-using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Icons;
 using LiveryInstaller.UI.Services.Liveries;
 

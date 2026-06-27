@@ -1,12 +1,10 @@
 ﻿using System.IO;
 using System.Runtime.CompilerServices;
 using LiveryInstaller.UI.Models.Parsing;
-using Microsoft.Extensions.Logging;
 
 namespace LiveryInstaller.UI.Services.Parsing;
 
-public class IniLexer(
-    ILogger<IniLexer> logger) : IIniLexer
+public class IniLexer : IIniLexer
 {
     public async IAsyncEnumerable<IniToken> LexAsync(
         TextReader streamReader,
@@ -14,7 +12,6 @@ public class IniLexer(
     {
         while (await streamReader.ReadLineAsync(cancellationToken) is { } line)
         {
-            logger.LogTrace("Lexing line: {line}", line);
             cancellationToken.ThrowIfCancellationRequested();
 
             var reader = new IniLineReader(line);
@@ -41,7 +38,6 @@ public class IniLexer(
                     afterEquals = true;
                 }
 
-                logger.LogTrace("Lexed token: {token}", token);
                 yield return token;
             }
 

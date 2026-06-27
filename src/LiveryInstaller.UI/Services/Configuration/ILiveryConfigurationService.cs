@@ -2,9 +2,8 @@
 
 namespace LiveryInstaller.UI.Services.Configuration;
 
+[LoggingDecorator]
 public interface ILiveryConfigurationService
 {
-    Task<bool> IsLiveryInstalledAsync(string aircraftName, string variantName, string liveryName);
-    
     Task InstallLiveryAsync(string aircraftName, string variantName, LiveryDto livery);
 }

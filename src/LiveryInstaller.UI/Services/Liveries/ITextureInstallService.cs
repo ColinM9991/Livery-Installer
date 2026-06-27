@@ -5,6 +5,7 @@ namespace LiveryInstaller.UI.Services.Liveries;
 /// <summary>
 /// Represents a service that can install and uninstall textures.
 /// </summary>
+[LoggingDecorator]
 public interface ITextureInstallService
 {
     /// <summary>

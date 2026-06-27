@@ -62,4 +62,8 @@
       <Resource Include="Images\warning.png" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\LiveryInstaller.SourceGenerators\LiveryInstaller.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
 </Project>

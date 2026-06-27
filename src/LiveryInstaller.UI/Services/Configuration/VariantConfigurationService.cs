@@ -1,20 +1,16 @@
 using System.IO;
 using LiveryInstaller.UI.Models.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace LiveryInstaller.UI.Services.Configuration;
 
 /// <inheritdoc />
 public sealed class VariantConfigurationService(
     IFileSystem fileSystem,
-    ISimulatorService simulatorService,
-    ILogger<VariantConfigurationService> logger) : IVariantConfigurationService
+    ISimulatorService simulatorService) : IVariantConfigurationService
 {
     /// <inheritdoc />
     public void InstallVariantConfiguration(SimulatorType simulatorType, string sourceArchiveDirectory, string aircraftName, string atcId)
     {
-        logger.LogInformation("Installing variant configuration for aircraft {AircraftName} with ATC ID {AtcId}", aircraftName, atcId);
-        
         var aircraftIni = Path.Combine(sourceArchiveDirectory, "Aircraft.ini");
         var targetIni = GetIniPath(simulatorType, aircraftName, atcId);
         
@@ -29,8 +25,6 @@ public sealed class VariantConfigurationService(
     /// <inheritdoc />
     public void UninstallVariantConfiguration(SimulatorType simulatorType, string aircraftName, string atcId)
     {
-        logger.LogInformation("Uninstalling variant configuration for aircraft {AircraftName} with ATC ID {AtcId}", aircraftName, atcId);
-        
         var targetIni = GetIniPath(simulatorType, aircraftName, atcId);
 
         if (fileSystem.FileExists(targetIni))

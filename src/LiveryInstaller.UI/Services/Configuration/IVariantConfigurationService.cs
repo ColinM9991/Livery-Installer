@@ -5,6 +5,7 @@ namespace LiveryInstaller.UI.Services.Configuration;
 /// <summary>
 /// Represents a service that can manage variant configurations.
 /// </summary>
+[LoggingDecorator]
 public interface IVariantConfigurationService
 {
     /// <summary>
