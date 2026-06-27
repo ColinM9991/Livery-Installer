@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:local="clr-namespace:LiveryInstaller.UI.Views"
+        xmlns:uc="clr-namespace:LiveryInstaller.UI.UserControls"
         xmlns:vm="clr-namespace:LiveryInstaller.UI.ViewModels"
         mc:Ignorable="d"
         d:DesignWidth="800" d:DesignHeight="350"
@@ -35,7 +35,10 @@
             <MenuItem Header="Settings" Command="{Binding NavigateToSettingsPageCommand}" />
         </Menu>
         <Border Grid.Column="1" CornerRadius="8" Background="#202020">
-            <ContentControl Content="{Binding Path=CurrentPage}" />
+            <Grid>
+                <ContentControl Content="{Binding Path=CurrentPage}" />
+                <uc:ToastControl Margin="0, 0, 5, 0" Width="350" HorizontalAlignment="Right" DataContext="{Binding ToastControlViewModel}" VerticalAlignment="Bottom"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>

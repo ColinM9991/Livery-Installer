@@ -12,6 +12,7 @@ public partial class MainWindowViewModel : ObservableObject, IPage
     private readonly INavigationService _navigationService;
     
     public MainWindowViewModel(
+        ToastControlViewModel toastControlViewModel,
         INavigationService navigationService,
         IOptionsMonitor<UserSettings> userSettings)
     {
@@ -23,8 +24,12 @@ public partial class MainWindowViewModel : ObservableObject, IPage
         CurrentPage = IsLiveryPageEnabled
             ? _navigationService.GetPage<LiveryPageViewModel>()
             : _navigationService.GetPage<SettingsPageViewModel>();
+        
+        ToastControlViewModel = toastControlViewModel;
     }
 
+    public ToastControlViewModel ToastControlViewModel { get; }
+    
     [ObservableProperty]
     public partial IPage CurrentPage { get; set; }
     

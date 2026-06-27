@@ -1,4 +1,5 @@
-﻿using LiveryInstaller.UI.Models.Configuration;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Configuration;
 using LiveryInstaller.UI.Services.Factories;
@@ -27,11 +28,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<LiveryPageViewModel>();
         services.AddScoped<ImportLiveryPageViewModel>();
         services.AddScoped<SettingsPageViewModel>();
-        services.AddScoped<INavigationService, NavigationService>();
+        services.AddSingleton<ToastControlViewModel>();
 
+        services.AddScoped<INavigationService, NavigationService>();
+        services.AddScoped<IToastService, ToastService>();
+        services.AddSingleton<IMessenger, WeakReferenceMessenger>();
         services.AddSingleton<IApplicationUpdaterService, ApplicationUpdaterService>();
         services.AddSingleton<ISimulatorService, SimulatorService>();
-
+        
         services.AddSingleton<IFileSystem, FileSystem>();
         services.AddSingleton<LoggingLevelSwitch>();
 

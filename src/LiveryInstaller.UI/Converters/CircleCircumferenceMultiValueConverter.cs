@@ -18,7 +18,7 @@ public class CircleCircumferenceMultiValueConverter : IMultiValueConverter
         
         var effectiveRadius  = Math.Max(radius, thickness);
 
-        var circumference = Math.PI * (effectiveRadius  - thickness);
+        var circumference = Math.PI * (effectiveRadius - thickness);
 
         var lineLength = circumference * 0.75;
         var gapLength = circumference - lineLength;
