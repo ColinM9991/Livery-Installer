@@ -23,9 +23,20 @@ public static class ConfigurationExtensions
 
         builder.Services.PostConfigure<SimulatorConfiguration>(opts =>
         {
-            var lockedSubKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Lockheed Martin\Prepar3D v5");
-            opts.InstallationPath = lockedSubKey?.GetValue("SetupPath")
-                as string;
+            var registryKeys = new Dictionary<SimulatorType, string>
+            {
+                [SimulatorType.Prepar3Dv4] = @"SOFTWARE\Lockheed Martin\Prepar3D v4",
+                [SimulatorType.Prepar3Dv5] = @"SOFTWARE\Lockheed Martin\Prepar3D v5"
+            };
+
+            foreach (var (simulatorType, registryKey) in registryKeys)
+            {
+                var key = Registry.LocalMachine.OpenSubKey(registryKey);
+                if (key?.GetValue("SetupPath") is string registryValue)
+                {
+                    opts.InstallationPaths[simulatorType] = registryValue;
+                }
+            }
         });
 
         return builder;

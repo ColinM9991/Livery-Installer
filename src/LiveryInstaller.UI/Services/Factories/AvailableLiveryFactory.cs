@@ -1,4 +1,5 @@
-﻿using LiveryInstaller.UI.Models.DTO;
+﻿using LiveryInstaller.UI.Models.Configuration;
+using LiveryInstaller.UI.Models.DTO;
 using LiveryInstaller.UI.Services.Liveries;
 
 namespace LiveryInstaller.UI.Services.Factories;
@@ -9,7 +10,7 @@ public sealed class AvailableLiveryFactory(
     ILiveryPathProvider liveryPathProvider): IAvailableLiveryFactory
 {
     /// <inheritdoc />
-    public AvailableLivery Create(AircraftDto aircraft, VariantDto variant, LiveryDto livery)
+    public AvailableLivery Create(SimulatorType simulatorType, AircraftDto aircraft, VariantDto variant, LiveryDto livery)
     {
         ArgumentNullException.ThrowIfNull(aircraft);
         ArgumentNullException.ThrowIfNull(variant);
@@ -17,7 +18,7 @@ public sealed class AvailableLiveryFactory(
 
         var availableLivery = new AvailableLivery(aircraft, variant, livery)
         {
-            IsInstalled = simulatorService.IsLiveryInstalled(variant.Name, livery.TextureId),
+            IsInstalled = simulatorService.IsLiveryInstalled(simulatorType, variant.Name, livery.TextureId),
             IconPath = liveryPathProvider.GetIconPath(aircraft.Name, variant.Name, livery.SanitisedName),
             LiveryPath = liveryPathProvider.GetLiveryPath(aircraft.Name, variant.Name, livery.SanitisedName)
         };

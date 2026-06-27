@@ -1,4 +1,5 @@
-﻿using LiveryInstaller.UI.Models.DTO;
+﻿using LiveryInstaller.UI.Models.Configuration;
+using LiveryInstaller.UI.Models.DTO;
 using LiveryInstaller.UI.Services.Icons;
 using LiveryInstaller.UI.Services.Liveries;
 using LiveryInstaller.UI.ViewModels;
@@ -11,13 +12,13 @@ public class LiveryViewModelFactory(
     IIconService iconService)
     : ILiveryViewModelFactory
 {
-    public LiveryViewModel Create(AircraftDto aircraft, VariantDto variant, LiveryDto livery)
+    public LiveryViewModel Create(SimulatorType simulatorType, AircraftDto aircraft, VariantDto variant, LiveryDto livery)
     {
         ArgumentNullException.ThrowIfNull(aircraft);
         ArgumentNullException.ThrowIfNull(variant);
         ArgumentNullException.ThrowIfNull(livery);
 
-        var availableLivery = availableLiveryFactory.Create(aircraft, variant, livery);
-        return new LiveryViewModel(availableLivery, liveryInstallService, iconService);
+        var availableLivery = availableLiveryFactory.Create(simulatorType, aircraft, variant, livery);
+        return new LiveryViewModel(simulatorType, availableLivery, liveryInstallService, iconService);
     }
 }

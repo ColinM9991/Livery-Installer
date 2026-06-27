@@ -9,8 +9,7 @@ namespace LiveryInstaller.UI.Services.Liveries;
 
 /// <inheritdoc />
 public class LiveryExtractor(
-    ILogger<LiveryExtractor> logger,
-    IOptionsMonitor<UserSettings> userSettings)
+    ILogger<LiveryExtractor> logger)
     : ILiveryExtractor
 {
     /// <inheritdoc />

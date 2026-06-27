@@ -2,5 +2,5 @@
 
 public class SimulatorConfiguration
 {
-    public string InstallationPath { get; set; } = string.Empty;
+    public IDictionary<SimulatorType, string> InstallationPaths { get; set; } = new Dictionary<SimulatorType, string>();
 }

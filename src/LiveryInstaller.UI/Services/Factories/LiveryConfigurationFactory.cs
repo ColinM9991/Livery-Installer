@@ -16,7 +16,7 @@ public class LiveryConfigurationFactory(
     : ILiveryConfigurationFactory
 {
     /// <inheritdoc />
-    public async Task<IReadOnlyCollection<AircraftDto>> GetAvailableAircraftAsync()
+    public async Task<IReadOnlyCollection<AircraftDto>> GetAvailableAircraftAsync(SimulatorType simulatorType)
     {
         if (string.IsNullOrWhiteSpace(userSettings.CurrentValue.LiveriesPath))
             return [];
@@ -26,7 +26,7 @@ public class LiveryConfigurationFactory(
 
         return merged
             .Where(x => liveryPathProvider.IsAircraftPathValid(x.Name))
-            .Select(CreateAircraftDto)
+            .Select(x => CreateAircraftDto(x, simulatorType))
             .Where(x => x.Variants.Count > 0)
             .ToList();
     }
@@ -36,10 +36,10 @@ public class LiveryConfigurationFactory(
     /// </summary>
     /// <param name="aircraft">The aircraft to create a DTO for.</param>
     /// <returns>The created DTO.</returns>
-    private AircraftDto CreateAircraftDto(Aircraft aircraft) => new(aircraft.Name,
+    private AircraftDto CreateAircraftDto(Aircraft aircraft, SimulatorType simulatorType) => new(aircraft.Name,
         aircraft.Variants.Where(x =>
                 liveryPathProvider.IsVariantPathValid(aircraft.Name, x.Name) &&
-                simulatorService.IsAircraftInstalled(x.Name))
+                simulatorService.IsAircraftInstalled(simulatorType, x.Name))
             .Select(x => CreateVariantDto(aircraft, x))
             .Where(x => x.Liveries.Count > 0).ToList());
 

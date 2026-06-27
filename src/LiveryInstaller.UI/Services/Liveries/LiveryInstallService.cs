@@ -26,10 +26,10 @@ public class LiveryInstallService(
 
             var extractionPath = await liveryExtractor.ExtractLiveryAsync(request.LiveryPath);
             
-            textureInstallService.InstallTexture(extractionPath, request.VariantName, request.TextureId);
-            await aircraftConfigurationService.AddLiveryAsync(request.VariantName,
+            textureInstallService.InstallTexture(request.SimulatorType, extractionPath, request.VariantName, request.TextureId);
+            await aircraftConfigurationService.AddLiveryAsync(request.SimulatorType, request.VariantName,
                 extractionPath);
-            variantConfigurationService.InstallVariantConfiguration(extractionPath, request.AircraftName, request.AtcId);
+            variantConfigurationService.InstallVariantConfiguration(request.SimulatorType, extractionPath, request.AircraftName, request.AtcId);
         }
         catch (Exception e)
         {
@@ -51,9 +51,9 @@ public class LiveryInstallService(
         
         try
         {
-            variantConfigurationService.UninstallVariantConfiguration(request.AircraftName, request.AtcId);
-            await aircraftConfigurationService.RemoveLiveryAsync(request.VariantName, request.AtcId);
-            textureInstallService.UninstallTexture(request.VariantName, request.TextureId);
+            variantConfigurationService.UninstallVariantConfiguration(request.SimulatorType, request.AircraftName, request.AtcId);
+            await aircraftConfigurationService.RemoveLiveryAsync(request.SimulatorType, request.VariantName, request.AtcId);
+            textureInstallService.UninstallTexture(request.SimulatorType, request.VariantName, request.TextureId);
         }
         catch (Exception e)
         {

@@ -2,6 +2,7 @@
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Models.DTO;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Icons;
@@ -12,14 +13,18 @@ namespace LiveryInstaller.UI.ViewModels;
 /// <summary>
 /// Represents a view model for a livery.
 /// </summary>
+/// <param name="simulatorType">The selected simulator.</param>
 /// <param name="livery">The livery to represent.</param>
 /// <param name="liveryInstallService">The service used to install and uninstall liveries.</param>
 public partial class LiveryViewModel(
+    SimulatorType simulatorType,
     AvailableLivery livery,
     ILiveryInstallService liveryInstallService,
     IIconService iconService)
     : ObservableObject
 {
+    private SimulatorType SelectedSimulator => simulatorType;
+    
     public string LiveryName => livery.LiveryName;
 
     public string Airline => livery.Airline;
@@ -90,7 +95,7 @@ public partial class LiveryViewModel(
     {
         IsInvokingCommand = true;
         
-        await liveryInstallService.InstallLiveryAsync(new LiveryInstallRequest(AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
+        await liveryInstallService.InstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
 
         IsInvokingCommand = false;
         IsInstalled = true;
@@ -101,7 +106,7 @@ public partial class LiveryViewModel(
     {
         IsInvokingCommand = true;
         
-        await liveryInstallService.UninstallLiveryAsync(new LiveryInstallRequest(AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
+        await liveryInstallService.UninstallLiveryAsync(new LiveryInstallRequest(SelectedSimulator, AircraftName, VariantName, LiveryPath, livery.TextureId, livery.AtcId));
 
         IsInvokingCommand = false;
         IsInstalled = false;

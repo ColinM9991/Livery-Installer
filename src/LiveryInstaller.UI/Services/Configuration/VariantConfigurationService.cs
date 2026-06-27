@@ -1,4 +1,5 @@
 using System.IO;
+using LiveryInstaller.UI.Models.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace LiveryInstaller.UI.Services.Configuration;
@@ -10,12 +11,12 @@ public sealed class VariantConfigurationService(
     ILogger<VariantConfigurationService> logger) : IVariantConfigurationService
 {
     /// <inheritdoc />
-    public void InstallVariantConfiguration(string sourceArchiveDirectory, string aircraftName, string atcId)
+    public void InstallVariantConfiguration(SimulatorType simulatorType, string sourceArchiveDirectory, string aircraftName, string atcId)
     {
         logger.LogInformation("Installing variant configuration for aircraft {AircraftName} with ATC ID {AtcId}", aircraftName, atcId);
         
         var aircraftIni = Path.Combine(sourceArchiveDirectory, "Aircraft.ini");
-        var targetIni = GetIniPath(aircraftName, atcId);
+        var targetIni = GetIniPath(simulatorType, aircraftName, atcId);
         
         ArgumentNullException.ThrowIfNull(targetIni);
 
@@ -26,18 +27,18 @@ public sealed class VariantConfigurationService(
     }
 
     /// <inheritdoc />
-    public void UninstallVariantConfiguration(string aircraftName, string atcId)
+    public void UninstallVariantConfiguration(SimulatorType simulatorType, string aircraftName, string atcId)
     {
         logger.LogInformation("Uninstalling variant configuration for aircraft {AircraftName} with ATC ID {AtcId}", aircraftName, atcId);
         
-        var targetIni = GetIniPath(aircraftName, atcId);
+        var targetIni = GetIniPath(simulatorType, aircraftName, atcId);
 
         if (fileSystem.FileExists(targetIni))
             fileSystem.FileDelete(targetIni);
     }
 
-    private string GetIniPath(string aircraftName, string atcId) => Path.Combine(
-        simulatorService.GetInstallationPath(),
+    private string GetIniPath(SimulatorType simulatorType, string aircraftName, string atcId) => Path.Combine(
+        simulatorService.GetInstallationPath(simulatorType),
         "PMDG",
         GetAircraftPath(aircraftName), "Aircraft", $"{atcId}.ini");
 

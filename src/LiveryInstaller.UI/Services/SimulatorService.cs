@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using LiveryInstaller.UI.Models.Configuration;
+using LiveryInstaller.UI.Models.DTO;
 using Microsoft.Extensions.Options;
 
 namespace LiveryInstaller.UI.Services;
@@ -9,28 +10,38 @@ public sealed class SimulatorService(
     IFileSystem fileSystem,
     IOptions<SimulatorConfiguration> simulatorConfiguration) : ISimulatorService
 {
-    private string InstallationPath => simulatorConfiguration.Value.InstallationPath;
-
-    private string AircraftPath => Path.Combine(InstallationPath, "SimObjects", "Airplanes");
+    private static string AircraftPath => Path.Combine("SimObjects", "Airplanes");
 
     /// <inheritdoc />
-    public bool IsAircraftInstalled(string variantName) =>
-        fileSystem.DirectoryExists(GetVariantPath(variantName));
+    public IReadOnlyList<InstalledSimulator> GetInstalledSimulators() =>
+        simulatorConfiguration.Value.InstallationPaths.Select(x => new InstalledSimulator(x.Key))
+            .ToList()
+            .AsReadOnly();
 
     /// <inheritdoc />
-    public bool IsLiveryInstalled(string variantName, string textureId) =>
-        fileSystem.DirectoryExists(GetLiveryPath(variantName, textureId));
+    public bool IsAircraftInstalled(SimulatorType simulatorType, string variantName) =>
+        fileSystem.DirectoryExists(GetVariantPath(simulatorType, variantName));
 
     /// <inheritdoc />
-    public string GetLiveryPath(string variantName, string textureId) =>
-        Path.Combine(AircraftPath, variantName, $"texture.{textureId}");
+    public bool IsLiveryInstalled(SimulatorType simulatorType, string variantName, string textureId) =>
+        fileSystem.DirectoryExists(GetLiveryPath(simulatorType, variantName, textureId));
 
     /// <inheritdoc />
-    public string GetVariantConfigurationPath(string variantName)
-        => Path.Combine(GetVariantPath(variantName), "aircraft.cfg");
+    public string GetLiveryPath(SimulatorType simulatorType, string variantName, string textureId) =>
+        Path.Combine(GetVariantPath(simulatorType, variantName), $"texture.{textureId}");
 
     /// <inheritdoc />
-    public string GetInstallationPath() => InstallationPath;
+    public string GetVariantConfigurationPath(SimulatorType simulatorType, string variantName)
+        => Path.Combine(GetVariantPath(simulatorType, variantName), "aircraft.cfg");
 
-    private string GetVariantPath(string variantName) => Path.Combine(AircraftPath, variantName);
+    /// <inheritdoc />
+    public string GetInstallationPath(SimulatorType simulatorType)
+    {
+        return !simulatorConfiguration.Value.InstallationPaths.TryGetValue(simulatorType, out var installationPath)
+            ? throw new ArgumentException($"Simulator type {simulatorType} is not supported.")
+            : installationPath;
+    }
+
+    private string GetVariantPath(SimulatorType simulatorType, string variantName) =>
+        Path.Combine(GetInstallationPath(simulatorType), AircraftPath, variantName);
 }

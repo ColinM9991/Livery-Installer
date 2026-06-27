@@ -17,6 +17,10 @@
 
         <StackPanel Grid.Column="0" Margin="16,24,16,24">
             <TextBlock Text="Filters" Style="{StaticResource PageHeading}" />
+            
+            <TextBlock Text="Simulator" Foreground="#FFFFFF" FontSize="14" />
+            <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedSimulator}"
+                      ItemsSource="{Binding AvailableSimulators}" DisplayMemberPath="Name" />
 
             <TextBlock Text="Products" Foreground="#FFFFFF" FontSize="14" />
             <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedAircraft}"

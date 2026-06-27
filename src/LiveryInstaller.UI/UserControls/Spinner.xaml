@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="LiveryInstaller.UI.UserControls.Spinner"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:LiveryInstaller.UI.Converters"
+             mc:Ignorable="d"
+             x:Name="Self"
+             d:DesignHeight="300" d:DesignWidth="300" d:Background="Transparent">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <converters:CircleCircumferenceMultiValueConverter x:Key="CircleCircumferenceMultiValueConverter" />
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Ellipse
+        Width="{Binding Diameter, ElementName=Self}"
+        Height="{Binding Diameter, ElementName=Self}"
+        StrokeThickness="{Binding Thickness, ElementName=Self}"
+        Stroke="{Binding Color, ElementName=Self}"
+        StrokeDashCap="Round"
+        RenderTransformOrigin="0.5 0.5"
+        Visibility="{Binding IsActive, ElementName=Self, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+        <Ellipse.StrokeDashArray>
+            <MultiBinding Converter="{StaticResource CircleCircumferenceMultiValueConverter}">
+                <Binding Path="Diameter" ElementName="Self" />
+                <Binding Path="Thickness" ElementName="Self" />
+            </MultiBinding>
+        </Ellipse.StrokeDashArray>
+        <Ellipse.RenderTransform>
+            <RotateTransform x:Name="Rotation" Angle="0" />
+        </Ellipse.RenderTransform>
+        <Ellipse.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                    <Storyboard RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="Rotation"
+                                         Storyboard.TargetProperty="Angle"
+                                         From="0"
+                                         To="360" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Ellipse.Triggers>
+    </Ellipse>
+</UserControl>

@@ -1,7 +1,9 @@
 ﻿using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveryInstaller.UI.Models;
+using LiveryInstaller.UI.Models.Configuration;
 using LiveryInstaller.UI.Models.DTO;
+using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Factories;
 using LiveryInstaller.UI.Services.Liveries;
 
@@ -10,27 +12,30 @@ namespace LiveryInstaller.UI.ViewModels;
 public partial class LiveryPageViewModel : ObservableObject, IPage
 {
     private const string AllOperatorsOption = "All";
+    private IReadOnlyList<LiveryViewModel> _selectedVariantLiveries = [];
     private readonly ILiveryConfigurationFactory _liveryConfigurationFactory;
     private readonly ILiveryViewModelFactory _liveryViewModelFactory;
-    private IReadOnlyList<LiveryViewModel> _selectedVariantLiveries = [];
 
-    [ObservableProperty] private IReadOnlyCollection<AircraftDto> _aircraftOptions;
-
-    public LiveryPageViewModel(
-        ILiveryConfigurationFactory liveryConfigurationFactory,
-        ILiveryViewModelFactory liveryViewModelFactory)
+    /// <inheritdoc/>
+    public LiveryPageViewModel(ILiveryConfigurationFactory liveryConfigurationFactory,
+        ILiveryViewModelFactory liveryViewModelFactory,
+        ISimulatorService simulatorService)
     {
         _liveryConfigurationFactory = liveryConfigurationFactory;
         _liveryViewModelFactory = liveryViewModelFactory;
-        _ = InitializeAsync();
+        AvailableSimulators = simulatorService.GetInstalledSimulators();
+        
+        SelectedSimulator = AvailableSimulators.FirstOrDefault();
     }
 
+    public IReadOnlyList<InstalledSimulator> AvailableSimulators { get; }
 
-    private async Task InitializeAsync()
-    {
-        AircraftOptions = await _liveryConfigurationFactory.GetAvailableAircraftAsync();
-        SelectedAircraft = AircraftOptions.FirstOrDefault();
-    }
+    [ObservableProperty]
+    public partial IReadOnlyCollection<AircraftDto> AircraftOptions { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedAircraft))]
+    public partial InstalledSimulator SelectedSimulator { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedAircraftVariants))]
@@ -70,6 +75,19 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
         string.IsNullOrWhiteSpace(SelectedOperator) || SelectedOperator == AllOperatorsOption ||
         livery.Airline == SelectedOperator;
 
+    partial void OnSelectedSimulatorChanged(InstalledSimulator value)
+    {
+        _ = InitializeAsync();
+        return;
+        
+        async Task InitializeAsync()
+        {
+            AircraftOptions = await Task.Run(() => _liveryConfigurationFactory.GetAvailableAircraftAsync(value));
+            SelectedAircraft = AircraftOptions.FirstOrDefault();
+            OnPropertyChanged(nameof(AircraftOptions));
+        }
+    }
+
     partial void OnSelectedAircraftChanged(AircraftDto value)
     {
         SelectedVariant = value?.Variants.FirstOrDefault();
@@ -78,7 +96,7 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
     partial void OnSelectedVariantChanged(VariantDto value)
     {
         _selectedVariantLiveries = value?.Liveries
-            .Select(x => _liveryViewModelFactory.Create(SelectedAircraft, value, x)).ToList() ?? [];
+            .Select(x => _liveryViewModelFactory.Create(SelectedSimulator, SelectedAircraft, value, x)).ToList() ?? [];
 
         SelectedOperator = AllOperatorsOption;
         OnPropertyChanged(nameof(SelectedVariantLiveries));

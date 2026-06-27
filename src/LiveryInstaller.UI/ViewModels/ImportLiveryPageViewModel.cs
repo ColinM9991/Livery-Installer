@@ -33,6 +33,8 @@ public partial class ImportLiveryPageViewModel(
     public partial bool IsLoaded { get; set; }
 
     [ObservableProperty] public partial bool WasImportSuccessful { get; set; }
+    
+    [ObservableProperty] public partial bool IsLoading { get; set; }
 
     public bool CanImport => !string.IsNullOrWhiteSpace(LiveryFile) && IsLoaded;
 
@@ -41,6 +43,7 @@ public partial class ImportLiveryPageViewModel(
     {
         await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
 
+        IsLoading = false;
         LoadedLivery = null;
         Icon = null;
         LiveryFile = null;
@@ -57,6 +60,11 @@ public partial class ImportLiveryPageViewModel(
         if (string.IsNullOrWhiteSpace(value))
             return;
         
+        LoadedLivery = null;
+        Icon = null;
+        IsLoaded = false;
+
+        IsLoading = true;
         WasImportSuccessful = false;
 
         var livery = await Task.Run(() => liveryImportService.LoadLiveryAsync(value));
@@ -65,6 +73,7 @@ public partial class ImportLiveryPageViewModel(
         Icon = await iconService.GetIconAsync(IconFile);
 
         IsLoaded = livery is not null;
+        IsLoading = false;
     }
 
     async partial void OnIconFileChanged(string value)
