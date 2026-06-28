@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LiveryInstaller.SourceGenerators
 {
@@ -19,77 +18,127 @@ namespace LiveryInstaller.SourceGenerators
                                                                 """));
 
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
-                    "LoggingDecoratorAttribute",
-                    predicate: static (node, _) => node is InterfaceDeclarationSyntax,
-                    transform: static (node, _) => (INamedTypeSymbol)node.TargetSymbol)
-                .Where(symbol => symbol is not null);
+                "LoggingDecoratorAttribute",
+                predicate: static (_, _) => true,
+                transform: static (ctx, _) =>
+                {
+                    var symbol = (INamedTypeSymbol)ctx.TargetSymbol;
+
+                    return new InterfaceModel(
+                        symbol.ContainingNamespace.ToDisplayString(),
+                        symbol.Name,
+                        symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        symbol.GetMembers()
+                            .OfType<IMethodSymbol>()
+                            .Where(static y => y.MethodKind == MethodKind.Ordinary)
+                            .Select(y => new MethodModel(
+                                y.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                y.ReturnType switch
+                                {
+                                    { SpecialType: SpecialType.System_Void } => ReturnKind.Void,
+                                    INamedTypeSymbol { IsGenericType: false, Name: "Task" } => ReturnKind.Task,
+                                    INamedTypeSymbol { IsGenericType: false, Name: "ValueTask" } => ReturnKind
+                                        .ValueTask,
+                                    INamedTypeSymbol { IsGenericType: true, Name: "Task" } => ReturnKind
+                                        .GenericTask,
+                                    INamedTypeSymbol { IsGenericType: true, Name: "ValueTask" } => ReturnKind
+                                        .GenericTask,
+                                    _ => ReturnKind.NonVoid
+                                },
+                                y.Name,
+                                y.Parameters
+                                    .Select(z => new ParameterModel(
+                                        z.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                        z.Name))
+                                    .ToEquatableArray()))
+                            .ToEquatableArray());
+                });
 
             context.RegisterSourceOutput(syntaxNodes, Execute);
         }
 
-        private static void Execute(SourceProductionContext context, INamedTypeSymbol node)
+        private static void Execute(SourceProductionContext context, InterfaceModel interfaceModel)
         {
-            var namespaceName = node.ContainingNamespace.ToDisplayString();
-            var interfaceName = node.Name;
-            var desiredClassName = $"Logging{interfaceName.Substring(1)}";
+            const string loggerService = "ILogger<{Type}> logger";
+            const string implementationTemplate = """
+                                                  using System;
+                                                  using Microsoft.Extensions.Logging;
+                                                  namespace {Namespace};
 
-            var methods = node.GetMembers().OfType<IMethodSymbol>();
+                                                  internal sealed class {Name}({Services}) : {Interface}
+                                                  {
+                                                  {Code}}
+                                                  """;
+
+            var name =
+                $"Logging{interfaceModel.Name.Substring(1)}";
 
             var sb = new StringBuilder();
-            sb.AppendLine($$"""
-                            using System;
-                            using Microsoft.Extensions.Logging;
-
-                            namespace {{namespaceName}};
-
-                            public sealed class {{desiredClassName}}(
-                                {{interfaceName}} inner,
-                                ILogger<{{desiredClassName}}> logger) : {{interfaceName}}
-                            {
-                            """);
-            foreach (var method in methods)
+            foreach (var method in interfaceModel.Methods.Array)
             {
-                var isAsync = IsTaskLike(method.ReturnType);
-                var isVoid = method.ReturnsVoid ||
-                             method.ReturnType.OriginalDefinition.MetadataName is "Task" or "ValueTask";
-                var methodName = method.Name;
-                var parameters = string.Join(", ", method.Parameters.Select(x => $"{x.Type} {x.Name}"));
-                var arguments = string.Join(", ", method.Parameters.Select(x => x.Name));
-
-                var logArguments = string.Join(" - ", method.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
-
-                sb.AppendLine($$"""
-                                    public{{(isAsync ? " async" : string.Empty)}} {{method.ReturnType.ToDisplayString()}} {{methodName}}({{parameters}})
-                                    {
-                                        try
-                                        {
-                                            logger.LogInformation("Starting {{methodName}} - {{logArguments}}", {{arguments}});
-                                            {{(isVoid ? string.Empty : "var result = ")}}{{(isAsync ? "await " : string.Empty)}}inner.{{methodName}}({{arguments}});
-                                            logger.LogInformation("Finished {{methodName}} - {{logArguments}}", {{arguments}});
-                                            {{(isVoid ? string.Empty : "return result;")}}
-                                        } catch (Exception e) {
-                                            logger.LogError(e, "Error executing {{methodName}} - {{logArguments}}", {{arguments}});
-                                            throw;
-                                        }
-                                    }
-                                """);
+                HandleMethodImplementation(method, sb);
             }
 
-            sb.AppendLine("}");
+            var code = implementationTemplate
+                .Replace("{Namespace}", interfaceModel.Namespace)
+                .Replace("{Services}",
+                    string.Join(", ",
+                    [
+                        loggerService.Replace("{Type}", name),
+                        $"{interfaceModel.FullyQualifiedName} inner"
+                    ]))
+                .Replace("{Name}", name)
+                .Replace("{Interface}", interfaceModel.FullyQualifiedName)
+                .Replace("{Code}", sb.ToString());
 
-            context.AddSource($"{namespaceName}.{desiredClassName}.g.cs", sb.ToString());
+            context.AddSource($"{name}.g.cs", code);
         }
 
-        private static bool IsTaskLike(ITypeSymbol typeSymbol)
+        private static void HandleMethodImplementation(MethodModel method, StringBuilder sb)
         {
-            var original = typeSymbol.OriginalDefinition;
-            var ns = original.ContainingNamespace?.ToDisplayString();
+            var isTask = method.ReturnKind is ReturnKind.Task or ReturnKind.ValueTask or ReturnKind.GenericTask
+                or ReturnKind.GenericValueTask;
 
-            if (ns is not "System.Threading.Tasks") return false;
-
-            return original.MetadataName is "Task" or "Task`1" or "ValueTask" or "ValueTask`1";
+            sb.Append("    public ");
+            if (isTask)
+                sb.Append("async ");
+            sb.Append(
+                $"{method.ReturnType} {method.Name}({string.Join(", ", method.Parameters.Array.Select(x => $"{x.Type} {x.Name}"))}) ");
+            sb.AppendLine();
+            HandleMethodBody(method, sb, isTask);
         }
 
-        private static string ToPascalCase(string str) => str.Substring(0, 1).ToUpperInvariant() + str.Substring(1);
+        private static void HandleMethodBody(MethodModel method, StringBuilder sb, bool isTask)
+        {
+            var isVoid = method.ReturnKind is ReturnKind.Void or ReturnKind.Task or ReturnKind.ValueTask;
+            var parameterNames = string.Join(" - ", method.Parameters.Array.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
+            var args = string.Join(", ", method.Parameters.Array.Select(x => x.Name));
+
+            var logMessageEnding = args.Length > 0 ? $" - {parameterNames}\", {args}" : "\"";
+
+            sb.AppendLine("    {");
+            sb.AppendLine("        try");
+            sb.AppendLine("        {");
+            sb.AppendLine($"            logger.LogInformation(\"Starting {method.Name}{logMessageEnding});");
+            sb.Append("            ");
+            if (!isVoid) sb.Append("var result = ");
+            if (isTask) sb.Append("await ");
+            sb.AppendLine($"inner.{method.Name}({string.Join(", ", args)});");
+            sb.AppendLine($"            logger.LogInformation(\"Finished {method.Name}{logMessageEnding});");
+            if (!isVoid) sb.AppendLine("            return result;");
+            sb.AppendLine("        }");
+            sb.AppendLine("        catch (Exception ex)");
+            sb.AppendLine("        {");
+            sb.AppendLine(
+                $"            logger.LogError(ex, \"An error occured during {method.Name}{logMessageEnding});");
+            sb.AppendLine("            throw;");
+            sb.AppendLine("        }");
+            sb.AppendLine("    }");
+        }
+
+        private static string ToPascalCase(string input)
+        {
+            return char.ToUpper(input[0]) + input.Substring(1);
+        }
     }
 }
