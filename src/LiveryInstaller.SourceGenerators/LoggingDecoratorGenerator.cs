@@ -20,14 +20,14 @@ namespace LiveryInstaller.SourceGenerators
 
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "LoggingDecoratorAttribute",
-                    predicate: (node, _) => node is InterfaceDeclarationSyntax,
-                    transform: (node, _) => (INamedTypeSymbol)node.TargetSymbol)
+                    predicate: static (node, _) => node is InterfaceDeclarationSyntax,
+                    transform: static (node, _) => (INamedTypeSymbol)node.TargetSymbol)
                 .Where(symbol => symbol is not null);
 
             context.RegisterSourceOutput(syntaxNodes, Execute);
         }
 
-        private void Execute(SourceProductionContext context, INamedTypeSymbol node)
+        private static void Execute(SourceProductionContext context, INamedTypeSymbol node)
         {
             var namespaceName = node.ContainingNamespace.ToDisplayString();
             var interfaceName = node.Name;
@@ -41,7 +41,7 @@ namespace LiveryInstaller.SourceGenerators
                             using Microsoft.Extensions.Logging;
 
                             namespace {{namespaceName}};
-                            
+
                             public sealed class {{desiredClassName}}(
                                 {{interfaceName}} inner,
                                 ILogger<{{desiredClassName}}> logger) : {{interfaceName}}
@@ -49,14 +49,14 @@ namespace LiveryInstaller.SourceGenerators
                             """);
             foreach (var method in methods)
             {
-                var isAsync = method.IsAsync || IsTaskLike(method.ReturnType);
+                var isAsync = IsTaskLike(method.ReturnType);
                 var isVoid = method.ReturnsVoid ||
                              method.ReturnType.OriginalDefinition.MetadataName is "Task" or "ValueTask";
                 var methodName = method.Name;
                 var parameters = string.Join(", ", method.Parameters.Select(x => $"{x.Type} {x.Name}"));
                 var arguments = string.Join(", ", method.Parameters.Select(x => x.Name));
-                
-                var logArguments = string.Join("- ", method.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
+
+                var logArguments = string.Join(" - ", method.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
 
                 sb.AppendLine($$"""
                                     public{{(isAsync ? " async" : string.Empty)}} {{method.ReturnType.ToDisplayString()}} {{methodName}}({{parameters}})
@@ -89,7 +89,7 @@ namespace LiveryInstaller.SourceGenerators
 
             return original.MetadataName is "Task" or "Task`1" or "ValueTask" or "ValueTask`1";
         }
-        
+
         private static string ToPascalCase(string str) => str.Substring(0, 1).ToUpperInvariant() + str.Substring(1);
     }
 }

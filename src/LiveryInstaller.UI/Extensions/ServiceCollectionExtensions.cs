@@ -46,24 +46,22 @@ public static class ServiceCollectionExtensions
         RegisterIconServices(services);
         RegisterUpdaterServices(services, builder.Configuration);
 
+        services.AddDecoratedServices();
+
         return builder;
     }
 
     private static void RegisterLiveryServices(IServiceCollection services)
     {
         services.AddSingleton<ILiveryInstallService, LiveryInstallService>()
-            .Decorate<ILiveryInstallService, LoggingLiveryInstallService>()
             .Decorate<ILiveryInstallService, NotifyingLiveryInstallService>();
 
         services.AddSingleton<ILiveryImportService, LiveryImportService>()
-            .Decorate<ILiveryImportService, LoggingLiveryImportService>()
             .Decorate<ILiveryImportService, NotifyingLiveryImportService>();
         
-        services.AddSingleton<ITextureInstallService, TextureInstallService>()
-            .Decorate<ITextureInstallService, LoggingTextureInstallService>();
+        services.AddSingleton<ITextureInstallService, TextureInstallService>();
         
-        services.AddSingleton<ILiveryExtractor, LiveryExtractor>()
-            .Decorate<ILiveryExtractor, LoggingLiveryExtractor>();
+        services.AddSingleton<ILiveryExtractor, LiveryExtractor>();
         
         services.AddSingleton<ILiveryPathProvider, LiveryPathProvider>();
     }
@@ -78,15 +76,9 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterConfigurationServices(IServiceCollection services)
     {
-        services.AddSingleton<ILiveryConfigurationService, LiveryConfigurationService>()
-            .Decorate<ILiveryConfigurationService, LoggingLiveryConfigurationService>();
-        
-        services.AddSingleton<IVariantConfigurationService, VariantConfigurationService>()
-            .Decorate<IVariantConfigurationService, LoggingVariantConfigurationService>();
-        
-        services.AddSingleton<IAircraftConfigurationService, AircraftConfigurationService>()
-            .Decorate<IAircraftConfigurationService, LoggingAircraftConfigurationService>();
-        
+        services.AddSingleton<ILiveryConfigurationService, LiveryConfigurationService>();
+        services.AddSingleton<IVariantConfigurationService, VariantConfigurationService>();
+        services.AddSingleton<IAircraftConfigurationService, AircraftConfigurationService>();
         services.AddSingleton<IWriteableConfigurationStore<UserSettings>, UserConfigurationStore>();
         services.AddSingleton<IReadableConfigurationStore<LiveriesConfiguration>, LiveriesConfigurationStore>();
         services.AddSingleton<IWriteableConfigurationStore<LiveriesConfiguration>, LiveriesConfigurationStore>();
