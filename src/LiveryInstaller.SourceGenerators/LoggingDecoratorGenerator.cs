@@ -1,7 +1,9 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace LiveryInstaller.SourceGenerators
 {
@@ -33,51 +35,118 @@ namespace LiveryInstaller.SourceGenerators
             var interfaceName = node.Name;
             var desiredClassName = $"Logging{interfaceName.Substring(1)}";
 
-            var methods = node.GetMembers().OfType<IMethodSymbol>();
+            var classDeclaration = ClassDeclaration(Identifier(desiredClassName))
+                .AddBaseListTypes(SimpleBaseType(IdentifierName(interfaceName)))
+                .WithModifiers(TokenList(
+                    Token(SyntaxKind.PublicKeyword),
+                    Token(SyntaxKind.SealedKeyword)))
+                .WithMembers(List(node.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .Select(GetMethodDeclaration)))
+                .WithParameterList(ParameterList(SeparatedList([
+                    Parameter(Identifier("inner")).WithType(IdentifierName(interfaceName)),
+                    Parameter(Identifier("logger"))
+                        .WithType(GenericName(Identifier("ILogger"))
+                            .WithTypeArgumentList(TypeArgumentList(
+                                SingletonSeparatedList<TypeSyntax>(
+                                    IdentifierName(desiredClassName)))))
+                ])));
 
-            var sb = new StringBuilder();
-            sb.AppendLine($$"""
-                            using System;
-                            using Microsoft.Extensions.Logging;
+            var namespaceDeclaration = FileScopedNamespaceDeclaration(
+                    ParseName(node.ContainingNamespace.ToDisplayString()))
+                .AddMembers(classDeclaration);
 
-                            namespace {{namespaceName}};
+            var compilationUnit = CompilationUnit()
+                .WithUsings(SingletonList(UsingDirective(IdentifierName("Microsoft.Extensions.Logging"))))
+                .AddMembers(namespaceDeclaration);
 
-                            public sealed class {{desiredClassName}}(
-                                {{interfaceName}} inner,
-                                ILogger<{{desiredClassName}}> logger) : {{interfaceName}}
-                            {
-                            """);
-            foreach (var method in methods)
+            context.AddSource($"{namespaceName}.{desiredClassName}.g.cs",
+                compilationUnit.NormalizeWhitespace().ToFullString());
+        }
+
+        private static MemberDeclarationSyntax GetMethodDeclaration(IMethodSymbol methodSymbol)
+        {
+            var method = MethodDeclaration(ParseTypeName(methodSymbol.ReturnType.ToDisplayString()), methodSymbol.Name)
+                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                .WithParameterList(
+                    ParameterList(
+                        SeparatedList(methodSymbol.Parameters.Select(y =>
+                            Parameter(Identifier(y.Name))
+                                .WithType(ParseTypeName(y.Type.ToDisplayString()))))))
+                .WithBody(Block(SingletonList(GetBlockBody(methodSymbol))));
+
+            if (IsTaskLike(methodSymbol.ReturnType))
             {
-                var isAsync = IsTaskLike(method.ReturnType);
-                var isVoid = method.ReturnsVoid ||
-                             method.ReturnType.OriginalDefinition.MetadataName is "Task" or "ValueTask";
-                var methodName = method.Name;
-                var parameters = string.Join(", ", method.Parameters.Select(x => $"{x.Type} {x.Name}"));
-                var arguments = string.Join(", ", method.Parameters.Select(x => x.Name));
-
-                var logArguments = string.Join(" - ", method.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
-
-                sb.AppendLine($$"""
-                                    public{{(isAsync ? " async" : string.Empty)}} {{method.ReturnType.ToDisplayString()}} {{methodName}}({{parameters}})
-                                    {
-                                        try
-                                        {
-                                            logger.LogInformation("Starting {{methodName}} - {{logArguments}}", {{arguments}});
-                                            {{(isVoid ? string.Empty : "var result = ")}}{{(isAsync ? "await " : string.Empty)}}inner.{{methodName}}({{arguments}});
-                                            logger.LogInformation("Finished {{methodName}} - {{logArguments}}", {{arguments}});
-                                            {{(isVoid ? string.Empty : "return result;")}}
-                                        } catch (Exception e) {
-                                            logger.LogError(e, "Error executing {{methodName}} - {{logArguments}}", {{arguments}});
-                                            throw;
-                                        }
-                                    }
-                                """);
+                method = method.AddModifiers(Token(SyntaxKind.AsyncKeyword));
             }
 
-            sb.AppendLine("}");
+            return method;
+        }
 
-            context.AddSource($"{namespaceName}.{desiredClassName}.g.cs", sb.ToString());
+        private static StatementSyntax GetBlockBody(IMethodSymbol methodSymbol)
+        {
+            List<StatementSyntax> statements =
+            [
+                GetLoggerExpression("Starting", methodSymbol),
+                GetBodyExpression(methodSymbol),
+                GetLoggerExpression("Finished", methodSymbol),
+            ];
+
+            if (HasNonVoidResult(methodSymbol))
+            {
+                statements.Add(ReturnStatement(IdentifierName("result")));
+            }
+
+            var statement = TryStatement()
+                .WithBlock(
+                    Block(List(statements)))
+                .WithCatches(SingletonList(CatchClause()
+                    .WithBlock(
+                        Block(
+                            List<StatementSyntax>([
+                                GetLoggerExpression("Error when executing", methodSymbol),
+                                ThrowStatement()
+                            ])))));
+
+            return statement;
+        }
+
+        private static StatementSyntax GetLoggerExpression(string logPrefix, IMethodSymbol methodSymbol)
+        {
+            var logArguments = string.Join(" - ", methodSymbol.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("logger"),
+                        IdentifierName("LogInformation")),
+                    ArgumentList(SeparatedList(
+                    [
+                        Argument(LiteralExpression(
+                            SyntaxKind.StringLiteralExpression,
+                            Literal($"{logPrefix} {methodSymbol.Name} - {logArguments}"))),
+                        ..methodSymbol.Parameters.Select(x => Argument(IdentifierName(x.Name)))
+                    ]))));
+        }
+
+        private static StatementSyntax GetBodyExpression(IMethodSymbol methodSymbol)
+        {
+            ExpressionSyntax invocationExpression = InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("inner"),
+                    IdentifierName(methodSymbol.Name)), ArgumentList(
+                    SeparatedList(methodSymbol.Parameters.Select(x => Argument(IdentifierName(x.Name))))));
+
+            if (IsTaskLike(methodSymbol.ReturnType))
+            {
+                invocationExpression = AwaitExpression(invocationExpression);
+            }
+
+            if (HasNonVoidResult(methodSymbol))
+            {
+                return LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
+                    .WithVariables(SingletonSeparatedList(VariableDeclarator(Identifier("result"))
+                        .WithInitializer(EqualsValueClause(invocationExpression)))));
+            }
+
+            return ExpressionStatement(invocationExpression);
         }
 
         private static bool IsTaskLike(ITypeSymbol typeSymbol)
@@ -89,6 +158,10 @@ namespace LiveryInstaller.SourceGenerators
 
             return original.MetadataName is "Task" or "Task`1" or "ValueTask" or "ValueTask`1";
         }
+
+        private static bool HasNonVoidResult(IMethodSymbol methodSymbol) =>
+            methodSymbol.ReturnType.SpecialType != SpecialType.System_Void &&
+            methodSymbol.ReturnType.OriginalDefinition.MetadataName is not ("Task" or "ValueTask");
 
         private static string ToPascalCase(string str) => str.Substring(0, 1).ToUpperInvariant() + str.Substring(1);
     }

@@ -55,13 +55,16 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
 
         if (symbols.IsEmpty) return;
 
-        var decoratedExpressions = symbols.Select(decoratedService => ExpressionStatement(InvocationExpression(
-            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("services"),
-                GenericName(Identifier("Decorate"),
-                    TypeArgumentList(SeparatedList([
-                        ParseTypeName(decoratedService.Name),
-                        ParseTypeName($"Logging{decoratedService.Name.Substring(1)}")
-                    ])))))));
+        var decoratedExpressions = symbols.Select(decoratedService => ExpressionStatement(
+            InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName("services"),
+                    GenericName(Identifier("Decorate"),
+                        TypeArgumentList(SeparatedList([
+                            ParseTypeName(decoratedService.Name),
+                            ParseTypeName($"Logging{decoratedService.Name.Substring(1)}")
+                        ])))))));
 
         var methodDeclaration =
             MethodDeclaration(ParseTypeName("IServiceCollection"), Identifier("AddDecoratedServices"))
