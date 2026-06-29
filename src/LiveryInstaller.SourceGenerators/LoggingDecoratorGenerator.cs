@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace LiveryInstaller.SourceGenerators
@@ -12,13 +11,15 @@ namespace LiveryInstaller.SourceGenerators
             context.RegisterPostInitializationOutput(ctx =>
                 ctx.AddSource("LoggingDecoratorGenerator.g.cs", """
                                                                 using System;
+                                                                
+                                                                namespace LiveryInstaller.UI;
 
                                                                 [AttributeUsage(AttributeTargets.Interface)]
                                                                 public sealed class LoggingDecoratorAttribute : Attribute { }
                                                                 """));
 
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
-                "LoggingDecoratorAttribute",
+                "LiveryInstaller.UI.LoggingDecoratorAttribute",
                 predicate: static (_, _) => true,
                 transform: static (ctx, _) =>
                 {
@@ -31,7 +32,7 @@ namespace LiveryInstaller.SourceGenerators
                         symbol.GetMembers()
                             .OfType<IMethodSymbol>()
                             .Where(static y => y.MethodKind == MethodKind.Ordinary)
-                            .Select(y => new MethodModel(
+                            .Select(static y => new MethodModel(
                                 y.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                                 y.ReturnType switch
                                 {
@@ -47,7 +48,7 @@ namespace LiveryInstaller.SourceGenerators
                                 },
                                 y.Name,
                                 y.Parameters
-                                    .Select(z => new ParameterModel(
+                                    .Select(static z => new ParameterModel(
                                         z.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                                         z.Name))
                                     .ToEquatableArray()))
@@ -59,81 +60,81 @@ namespace LiveryInstaller.SourceGenerators
 
         private static void Execute(SourceProductionContext context, InterfaceModel interfaceModel)
         {
-            const string loggerService = "ILogger<{Type}> logger";
-            const string implementationTemplate = """
-                                                  using System;
-                                                  using Microsoft.Extensions.Logging;
-                                                  namespace {Namespace};
-
-                                                  internal sealed class {Name}({Services}) : {Interface}
-                                                  {
-                                                  {Code}}
-                                                  """;
-
+            if (interfaceModel == null || interfaceModel.Methods.IsEmpty) return;
+            
             var name =
                 $"Logging{interfaceModel.Name.Substring(1)}";
 
-            var sb = new StringBuilder();
-            foreach (var method in interfaceModel.Methods.Array)
+            var sb = new IndentingStringBuilder();
+            
+            sb.AppendLine("using System;")
+                .AppendLine("using Microsoft.Extensions.Logging;")
+                .AppendLine($"namespace {interfaceModel.Namespace};")
+                .AppendLine()
+                .AppendLine($"internal sealed class {name}(ILogger<{name}> logger, {interfaceModel.FullyQualifiedName} inner) : {interfaceModel.FullyQualifiedName}")
+                .AppendLine("{")
+                .IncrementIndentation();
+            
+            foreach (var method in interfaceModel.Methods)
             {
                 HandleMethodImplementation(method, sb);
             }
+            
+            sb.DecrementIndentation()
+                .AppendLine("}");
 
-            var code = implementationTemplate
-                .Replace("{Namespace}", interfaceModel.Namespace)
-                .Replace("{Services}",
-                    string.Join(", ",
-                    [
-                        loggerService.Replace("{Type}", name),
-                        $"{interfaceModel.FullyQualifiedName} inner"
-                    ]))
-                .Replace("{Name}", name)
-                .Replace("{Interface}", interfaceModel.FullyQualifiedName)
-                .Replace("{Code}", sb.ToString());
-
-            context.AddSource($"{name}.g.cs", code);
+            context.AddSource($"{name}.g.cs", sb.ToString());
         }
 
-        private static void HandleMethodImplementation(MethodModel method, StringBuilder sb)
+        private static void HandleMethodImplementation(MethodModel method, IndentingStringBuilder sb)
         {
             var isTask = method.ReturnKind is ReturnKind.Task or ReturnKind.ValueTask or ReturnKind.GenericTask
                 or ReturnKind.GenericValueTask;
 
-            sb.Append("    public ");
+            sb.Append("public ");
             if (isTask)
                 sb.Append("async ");
             sb.Append(
-                $"{method.ReturnType} {method.Name}({string.Join(", ", method.Parameters.Array.Select(x => $"{x.Type} {x.Name}"))}) ");
+                $"{method.ReturnType} {method.Name}({string.Join(", ", method.Parameters.Select(x => $"{x.Type} {x.Name}"))}) ");
             sb.AppendLine();
+            
             HandleMethodBody(method, sb, isTask);
         }
 
-        private static void HandleMethodBody(MethodModel method, StringBuilder sb, bool isTask)
+        private static void HandleMethodBody(MethodModel method, IndentingStringBuilder sb, bool isTask)
         {
             var isVoid = method.ReturnKind is ReturnKind.Void or ReturnKind.Task or ReturnKind.ValueTask;
-            var parameterNames = string.Join(" - ", method.Parameters.Array.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
-            var args = string.Join(", ", method.Parameters.Array.Select(x => x.Name));
+            var parameterNames = string.Join(" - ", method.Parameters.Select(x => $"{{{ToPascalCase(x.Name)}}}"));
+            var args = string.Join(", ", method.Parameters.Select(x => x.Name));
 
             var logMessageEnding = args.Length > 0 ? $" - {parameterNames}\", {args}" : "\"";
 
-            sb.AppendLine("    {");
-            sb.AppendLine("        try");
-            sb.AppendLine("        {");
-            sb.AppendLine($"            logger.LogInformation(\"Starting {method.Name}{logMessageEnding});");
-            sb.Append("            ");
+            sb.AppendLine("{")
+                .IncrementIndentation()
+                .AppendLine("try")
+                .AppendLine("{")
+                .IncrementIndentation()
+                .AppendLine($"logger.LogInformation(\"Starting {method.Name}{logMessageEnding});");
+            
             if (!isVoid) sb.Append("var result = ");
             if (isTask) sb.Append("await ");
-            sb.AppendLine($"inner.{method.Name}({string.Join(", ", args)});");
-            sb.AppendLine($"            logger.LogInformation(\"Finished {method.Name}{logMessageEnding});");
-            if (!isVoid) sb.AppendLine("            return result;");
-            sb.AppendLine("        }");
-            sb.AppendLine("        catch (Exception ex)");
-            sb.AppendLine("        {");
-            sb.AppendLine(
-                $"            logger.LogError(ex, \"An error occured during {method.Name}{logMessageEnding});");
-            sb.AppendLine("            throw;");
-            sb.AppendLine("        }");
-            sb.AppendLine("    }");
+            
+            sb.AppendLine($"inner.{method.Name}({string.Join(", ", args)});")
+                .AppendLine($"logger.LogInformation(\"Finished {method.Name}{logMessageEnding});");
+            
+            if (!isVoid) sb.AppendLine("return result;");
+            
+            sb.DecrementIndentation()
+                .AppendLine("}")
+                .AppendLine("catch (Exception ex)")
+                .AppendLine("{")
+                .IncrementIndentation()
+                .AppendLine($"logger.LogError(ex, \"An error occured during {method.Name}{logMessageEnding});")
+                .AppendLine("throw;")
+                .DecrementIndentation()
+                .AppendLine("}")
+                .DecrementIndentation()
+                .AppendLine("}");
         }
 
         private static string ToPascalCase(string input)

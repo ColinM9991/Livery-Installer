@@ -1,7 +1,5 @@
 ﻿using System.Collections.Immutable;
-using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LiveryInstaller.SourceGenerators;
 
@@ -37,8 +35,8 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LoggingDecoratorAttribute",
-                predicate: static (node, _) => node is InterfaceDeclarationSyntax,
+        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LiveryInstaller.UI.LoggingDecoratorAttribute",
+                predicate: static (_, _) => true,
                 transform: static (node, _) => (node.TargetSymbol.ContainingNamespace.ToDisplayString(), node.TargetSymbol.Name))
             .Collect();
 
@@ -49,29 +47,31 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
     {
         const string className = "DecoratedServiceCollectionExtensions";
 
-        const string template = """
-                                using Microsoft.Extensions.DependencyInjection;
-
-                                namespace LiveryInstaller.UI.Extensions;
-                                public static class DecoratedServiceCollectionExtensions
-                                {
-                                    public static IServiceCollection AddDecoratedServices(this IServiceCollection services)
-                                    {
-                                        {Code}
-                                        return services;
-                                    }
-                                }
-                                """;
-
         if (symbols.IsEmpty) return;
 
-        var sb = new StringBuilder();
+        var sb = new IndentingStringBuilder();
+        sb.AppendLine("using Microsoft.Extensions.DependencyInjection;")
+            .AppendLine()
+            .AppendLine("namespace LiveryInstaller.UI.Extensions;")
+            .AppendLine()
+            .AppendLine("public static class DecoratedServiceCollectionExtensions")
+            .AppendLine("{")
+            .IncrementIndentation()
+            .AppendLine("public static IServiceCollection AddDecoratedServices(this IServiceCollection services)")
+            .AppendLine("{")
+            .IncrementIndentation();
+        
         foreach (var (namespaceName, interfaceName) in symbols)
         {
-            sb.AppendLine($"        services.Decorate<{namespaceName}.{interfaceName}, {namespaceName}.Logging{interfaceName.Substring(1)}>();");
+            sb.AppendLine($"services.Decorate<{namespaceName}.{interfaceName}, {namespaceName}.Logging{interfaceName.Substring(1)}>();");
         }
-
         
-        context.AddSource($"{className}.g.cs", template.Replace("{Code}", sb.ToString()));
+        sb.AppendLine("return services;")
+            .DecrementIndentation()
+            .AppendLine("}")
+            .DecrementIndentation()
+            .AppendLine("}");
+        
+        context.AddSource($"{className}.g.cs", sb.ToString());
     }
 }
