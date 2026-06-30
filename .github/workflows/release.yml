@@ -94,6 +94,7 @@ jobs:
             --packVersion ${{ steps.version.outputs.version }} `
             --packDir publish `
             --mainExe ${{ env.APP_NAME }}.UI.exe `
+            --framework vcredist100-x64 `
             --outputDir ./Releases `
             --releaseNotes "release_notes.md"
 

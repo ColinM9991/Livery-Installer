@@ -42,6 +42,7 @@ All developers are welcome to contribute to this project.
 ## Requirements
 
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [Microsoft Visual C++ 2010 SP1 Redistributable Package (x64)](https://www.microsoft.com/en-gb/download/details.aspx?id=26999)
 - [Visual Studio](https://visualstudio.microsoft.com/)
 - [JetBrains Rider](https://www.jetbrains.com/rider/)
 
@@ -52,3 +53,5 @@ The logging and error handling isn't yet complete. My main focus has been to pro
 I will implement Toast notifications and better logging/error handling in the future.
 
 For now, please observe the log files in `%LOCALAPPDATA%\LiveryInstaller\current` and contact me with any issues so I can continue improving any unexpected scenarios.
+
+If you are running the portable version you may get a crash when selecting your .ptp file. If this happens you may be missing [Microsoft Visual C++ 2010 SP1 Redistributable Package (x64)](https://www.microsoft.com/en-gb/download/details.aspx?id=26999).
