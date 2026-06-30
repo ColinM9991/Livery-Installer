@@ -47,9 +47,6 @@
             <uc:Card.CardContent>
                 <Grid>
                     
-                    <TextBlock Text="Livery installed successfully" FontSize="24" FontWeight="Bold" Foreground="Green" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Visibility="{Binding WasImportSuccessful, Converter={StaticResource BooleanToVisibility}}"/>
-                    
                     <uc:Spinner Diameter="150" Thickness="8" IsActive="{Binding IsLoading}" Color="White"/>
                     
                     <StackPanel Margin="16,0,16, 0"

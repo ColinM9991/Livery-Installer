@@ -58,11 +58,9 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ILiveryImportService, LiveryImportService>()
             .Decorate<ILiveryImportService, NotifyingLiveryImportService>();
-        
+
         services.AddSingleton<ITextureInstallService, TextureInstallService>();
-        
         services.AddSingleton<ILiveryExtractor, LiveryExtractor>();
-        
         services.AddSingleton<ILiveryPathProvider, LiveryPathProvider>();
     }
 
@@ -76,6 +74,7 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterConfigurationServices(IServiceCollection services)
     {
+        services.AddSingleton<IAirlinesConfigurationService, AirlinesConfigurationService>();
         services.AddSingleton<ILiveryConfigurationService, LiveryConfigurationService>();
         services.AddSingleton<IVariantConfigurationService, VariantConfigurationService>();
         services.AddSingleton<IAircraftConfigurationService, AircraftConfigurationService>();

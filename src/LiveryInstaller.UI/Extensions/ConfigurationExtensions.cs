@@ -14,12 +14,14 @@ public static class ConfigurationExtensions
         builder.Configuration
             .AddJsonFile(UserConfigurationStore.SettingsFile, optional: true, reloadOnChange: true)
             .AddJsonFile("liveryConfiguration.json", optional: false)
+            .AddJsonFile("airlinesConfiguration.json", optional: false)
             .AddEnvironmentVariables();
 
         builder.Services.Configure<UserSettings>(
             builder.Configuration.GetSection("userSettings"));
 
         builder.Services.Configure<AircraftConfiguration>(builder.Configuration.GetSection("liveriesConfiguration"));
+        builder.Services.Configure<AirlinesConfiguration>(builder.Configuration.GetSection("airlinesConfiguration"));
 
         builder.Services.PostConfigure<SimulatorConfiguration>(opts =>
         {
