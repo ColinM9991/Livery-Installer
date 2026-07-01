@@ -54,23 +54,23 @@ public sealed class LoadedLiveryFactory(
     {
         var uiVariation = flightSimSection.GetValue("ui_variation");
 
+        // Match against a list of known airlines
         var candidateAirline = airlinesConfigurationService.GetAirlineName(uiVariation);
-
         if (!string.IsNullOrEmpty(candidateAirline))
             return candidateAirline;
 
-        var airlineName = flightSimSection.GetValue("airline_name");
-
         // Return airline_name if it exists. Some liveries use this
+        var airlineName = flightSimSection.GetValue("airline_name");
         if (!string.IsNullOrEmpty(airlineName))
             return airlineName;
 
         // Try to parse the operator name from the ui_variation
-        // E.g; Korean Air (D-ABCD)
+        // E.g, Korean Air (D-ABCD)
         if (uiVariation.Contains('('))
             return uiVariation[..(uiVariation.IndexOf('(') - 1)];
 
         // Match with Regex for liveries that don't wrap the registration in parentheses
+        // E.g, Korean Air D-ABCD
         var matches = RegularExpressions.AirlineUiVariationRegex().Matches(uiVariation);
 
         return matches.Count > 0

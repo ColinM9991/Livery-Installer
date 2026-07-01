@@ -22,4 +22,11 @@ public interface ILiveryImportService
     /// <param name="iconFile">The livery icon.</param>
     /// <returns></returns>
     Task ImportLiveryAsync(LoadedLivery livery, string iconFile);
+
+    /// <summary>
+    /// Removes a user imported livery from the store.
+    /// </summary>
+    /// <param name="livery">The livery.</param>
+    /// <returns></returns>
+    Task RemoveLiveryAsync(LiveryRemoveRequest livery);
 }

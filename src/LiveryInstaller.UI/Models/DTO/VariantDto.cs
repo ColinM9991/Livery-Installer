@@ -5,4 +5,4 @@
 /// </summary>
 /// <param name="Name">Variant name.</param>
 /// <param name="Liveries">Variant liveries.</param>
-public record VariantDto(string Name, IReadOnlyCollection<LiveryDto> Liveries);
+public record VariantDto(string Name, IList<LiveryDto> Liveries);

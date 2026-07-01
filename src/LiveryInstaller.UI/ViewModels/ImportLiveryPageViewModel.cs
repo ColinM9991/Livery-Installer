@@ -56,19 +56,25 @@ public partial class ImportLiveryPageViewModel(
         if (string.IsNullOrWhiteSpace(value))
             return;
 
-        LoadedLivery = null;
-        Icon = null;
-        IsLoaded = false;
+        try
+        {
+            LoadedLivery = null;
+            Icon = null;
+            IsLoaded = false;
+            IsLoading = true;
 
-        IsLoading = true;
+            var livery = await Task.Run(() => liveryImportService.LoadLiveryAsync(value));
 
-        var livery = await Task.Run(() => liveryImportService.LoadLiveryAsync(value));
+            LoadedLivery = livery;
+            Icon = await iconService.GetIconAsync(IconFile);
 
-        LoadedLivery = livery;
-        Icon = await iconService.GetIconAsync(IconFile);
-
-        IsLoaded = livery is not null;
-        IsLoading = false;
+            IsLoaded = livery is not null;
+            IsLoading = false;
+        }
+        catch
+        {
+            // Swallow exception. User notified via notifications.
+        }
     }
 
     async partial void OnIconFileChanged(string value)

@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Windows.Input;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models.Configuration;
@@ -18,12 +19,16 @@ public partial class LiveryViewModel(
     SimulatorType simulatorType,
     AvailableLivery livery,
     ILiveryInstallService liveryInstallService,
-    IIconService iconService)
+    ILiveryImportService liveryImportService,
+    IIconService iconService,
+    Action<LiveryViewModel> onDeleteCallback)
     : ObservableObject
 {
     private SimulatorType SelectedSimulator => simulatorType;
 
     public string LiveryName => livery.LiveryName;
+
+    public string TextureId => livery.TextureId;
 
     public string Airline => livery.Airline;
 
@@ -39,7 +44,7 @@ public partial class LiveryViewModel(
 
     [ObservableProperty] public partial ImageSource Icon { get; set; }
 
-    [ObservableProperty] private partial bool IsIconLoading { get; set; }
+    [ObservableProperty] public partial bool IsIconLoading { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(InstallLiveryCommand))]
@@ -47,11 +52,16 @@ public partial class LiveryViewModel(
     [NotifyPropertyChangedFor(nameof(ShouldShowProgress))]
     private partial bool IsInvokingCommand { get; set; }
 
-    public bool ShouldShowInstallButton => !IsInstalled;
-
     public bool ShouldShowProgress => IsInvokingCommand;
 
-    public bool ShouldShowUninstallButton => IsInstalled;
+    public ICommand ActionCommand =>
+        !IsInstalled ? InstallLiveryCommand : UninstallLiveryCommand;
+
+    public string ActionText =>
+        !IsInstalled ? "Install" : "Uninstall";
+
+    public Brush ActionBackground =>
+        !IsInstalled ? Brushes.Green : Brushes.DarkRed;
 
     private bool IsInstalled
     {
@@ -64,8 +74,9 @@ public partial class LiveryViewModel(
             livery.IsInstalled = value;
             OnPropertyChanged();
 
-            OnPropertyChanged(nameof(ShouldShowInstallButton));
-            OnPropertyChanged(nameof(ShouldShowUninstallButton));
+            OnPropertyChanged(nameof(ActionCommand));
+            OnPropertyChanged(nameof(ActionText));
+            OnPropertyChanged(nameof(ActionBackground));
 
             InstallLiveryCommand.NotifyCanExecuteChanged();
             UninstallLiveryCommand.NotifyCanExecuteChanged();
@@ -124,6 +135,19 @@ public partial class LiveryViewModel(
         {
             // Do nothing, swallow exception. Services log and notify the user
         }
+    }
+
+    [RelayCommand]
+    private async Task DeleteImportedLivery()
+    {
+        if (IsInstalled)
+            await UninstallLiveryAsync();
+
+        await liveryImportService.RemoveLiveryAsync(new LiveryRemoveRequest(AircraftName, VariantName, LiveryName,
+            livery.TextureId,
+            LiveryPath, IconPath));
+
+        onDeleteCallback?.Invoke(this);
     }
 
     private bool CanExecuteInstallLiveryCommand() =>

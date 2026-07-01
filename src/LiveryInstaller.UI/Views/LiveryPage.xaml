@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:LiveryInstaller.UI.ViewModels"
+             xmlns:uc="clr-namespace:LiveryInstaller.UI.UserControls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:LiveryPageViewModel}"
              d:DesignHeight="300" d:DesignWidth="600" Background="Transparent">
@@ -17,7 +18,7 @@
 
         <StackPanel Grid.Column="0" Margin="16,24,16,24">
             <TextBlock Text="Filters" Style="{StaticResource PageHeading}" />
-            
+
             <TextBlock Text="Simulator" Foreground="#FFFFFF" FontSize="14" />
             <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedSimulator}"
                       ItemsSource="{Binding AvailableSimulators}" DisplayMemberPath="Name" />
@@ -63,6 +64,8 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
+                                <uc:Spinner Grid.Row="0" Diameter="100" Thickness="2" IsActive="{Binding IsIconLoading}" Color="DimGray" />
+
                                 <Image Grid.Row="0"
                                        Source="{Binding Icon}"
                                        Stretch="Fill"
@@ -75,13 +78,18 @@
                                            Margin="8, 8, 8, 16"
                                            TextTrimming="CharacterEllipsis" />
 
-                                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <Button Content="Install" Background="Green" MinWidth="148"
-                                            Visibility="{Binding ShouldShowInstallButton, Converter={StaticResource BooleanToVisibility}}"
-                                            Margin="0, 12, 6, 8" Command="{Binding InstallLiveryCommand}" />
-                                    <Button Content="Uninstall" Background="DarkRed" MinWidth="148"
-                                            Visibility="{Binding ShouldShowUninstallButton, Converter={StaticResource BooleanToVisibility}}"
-                                            Margin="0, 12, 6, 8" Command="{Binding UninstallLiveryCommand}" />
+                                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0, 12, 0, 8">
+                                    <Button Width="50"
+                                            Margin="0, 0, 6, 0"
+                                            Content="🗑️"
+                                            ToolTip="Delete this user imported livery"
+                                            Visibility="{Binding IsUserImported, Converter={StaticResource BooleanToVisibility}}"
+                                            Command="{Binding DeleteImportedLiveryCommand}"/>
+                                    <Button MinWidth="148"
+                                            Margin="0, 0, 6, 0"
+                                            Content="{Binding ActionText}"
+                                            Background="{Binding ActionBackground}"
+                                            Command="{Binding ActionCommand}" />
                                 </StackPanel>
                                 <ProgressBar Grid.Row="3" IsIndeterminate="True"
                                              Visibility="{Binding ShouldShowProgress, Converter={StaticResource BooleanToVisibility}}" />

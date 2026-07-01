@@ -34,6 +34,18 @@ public sealed class LiveryConfigurationService(
         await writeStore.WriteAsync(configuration);
     }
 
+    public async Task RemoveLiveryAsync(string aircraftName, string variantName, string textureId)
+    {
+        var configuration = await readStore.ReadAsync();
+        var variant = GetVariant(configuration, aircraftName, variantName);
+        
+        var livery = variant.Liveries.FirstOrDefault(x => x.TextureId == textureId);
+        if (livery is null) return;
+        
+        variant.Liveries.Remove(livery);
+        await writeStore.WriteAsync(configuration);
+    }
+
     private static Variant GetVariant(LiveriesConfiguration liveriesConfiguration, string aircraftName,
         string variantName)
     {

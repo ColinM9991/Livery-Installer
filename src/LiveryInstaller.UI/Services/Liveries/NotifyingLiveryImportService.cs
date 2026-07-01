@@ -35,4 +35,21 @@ public sealed class NotifyingLiveryImportService(
             throw;
         }
     }
+
+    public async Task RemoveLiveryAsync(LiveryRemoveRequest livery)
+    {
+        try
+        {
+            toastService.Information($"Removing user livery {livery.LiveryName}");
+
+            await liveryImportService.RemoveLiveryAsync(livery);
+            
+            toastService.Success("Livery removed successfully");
+        }
+        catch
+        {
+            toastService.Error($"Failed to remove livery: {livery.LiveryName}. Please refer to the log");
+            throw;
+        }
+    }
 }

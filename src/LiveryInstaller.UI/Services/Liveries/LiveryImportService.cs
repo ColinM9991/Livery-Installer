@@ -43,4 +43,15 @@ public sealed class LiveryImportService(
 
         await liveryConfigurationService.InstallLiveryAsync(livery.AircraftFamily, livery.Variant, livery.Livery);
     }
+
+    public async Task RemoveLiveryAsync(LiveryRemoveRequest livery)
+    {
+        if (fileSystem.FileExists(livery.PackagePath))
+            fileSystem.FileDelete(livery.PackagePath);
+        
+        if (fileSystem.FileExists(livery.IconPath))
+            fileSystem.FileDelete(livery.IconPath);
+        
+        await liveryConfigurationService.RemoveLiveryAsync(livery.AircraftName, livery.VariantName, livery.TextureId);
+    }
 }
