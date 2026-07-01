@@ -13,6 +13,7 @@ env:
   PROJECT_PATH: src/LiveryInstaller.UI/LiveryInstaller.UI.csproj
   RUNTIME: win-x64
   APP_NAME: LiveryInstaller
+  APP_FRIENDLY_NAME: Livery Installer
 
 jobs:
   release:
@@ -92,6 +93,7 @@ jobs:
           vpk pack `
             --packId ${{ env.APP_NAME }} `
             --packVersion ${{ steps.version.outputs.version }} `
+            --packTitle "${{ env.APP_FRIENDLY_NAME }}" `
             --packDir publish `
             --mainExe ${{ env.APP_NAME }}.UI.exe `
             --outputDir ./Releases `

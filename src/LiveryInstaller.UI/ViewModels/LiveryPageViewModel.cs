@@ -48,6 +48,14 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
     [NotifyPropertyChangedFor(nameof(SelectedVariantLiveries))]
     public partial string SelectedOperator { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedVariantLiveries))]
+    public partial bool FilterUserImported { get; set; }
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedVariantLiveries))]
+    public partial bool FilterInstalled { get; set; }
+
     public IEnumerable<VariantDto> SelectedAircraftVariants => SelectedAircraft?.Variants ?? [];
 
     public IEnumerable<LiveryViewModel> SelectedVariantLiveries => _selectedVariantLiveries.Where(MatchesLivery);
@@ -69,9 +77,16 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
         }
     }
 
-    private bool MatchesLivery(LiveryViewModel livery) =>
-        string.IsNullOrWhiteSpace(SelectedOperator) || SelectedOperator == AllOperatorsOption ||
-        livery.Airline == SelectedOperator;
+    private bool MatchesLivery(LiveryViewModel livery)
+    {
+        var matchesInstalled = !FilterInstalled || livery.IsInstalled;
+        var matchesUserImported = !FilterUserImported || livery.IsUserImported;
+        var matchesOperator = string.IsNullOrWhiteSpace(SelectedOperator)
+                              || SelectedOperator == AllOperatorsOption
+                              || livery.Airline == SelectedOperator;
+
+        return matchesUserImported && matchesOperator && matchesInstalled;
+    }
 
     partial void OnSelectedSimulatorChanged(InstalledSimulator value)
     {
@@ -109,7 +124,7 @@ public partial class LiveryPageViewModel : ObservableObject, IPage
     {
         _selectedVariantLiveries.Remove(livery);
         SelectedVariant.Liveries.Remove(SelectedVariant.Liveries.First(x => x.TextureId == livery.TextureId));
-        
+
         OnPropertyChanged(nameof(SelectedVariantLiveries));
         OnPropertyChanged(nameof(LiveriesPanelVisibility));
         OnPropertyChanged(nameof(WarningPanelVisibility));

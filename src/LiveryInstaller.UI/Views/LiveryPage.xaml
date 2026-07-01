@@ -34,6 +34,11 @@
             <TextBlock Text="Operators" Foreground="#FFFFFF" FontSize="14" />
             <ComboBox MinWidth="230" MaxWidth="230" SelectedItem="{Binding SelectedOperator}"
                       ItemsSource="{Binding AvailableOperators}" />
+            
+            <TextBlock Text="Additional filters" Style="{StaticResource SubHeading}" />
+
+            <CheckBox IsChecked="{Binding FilterUserImported}" Content="Filter user imported" Foreground="White" />
+            <CheckBox Margin="0, 4, 0, 0" IsChecked="{Binding FilterInstalled}" Content="Filter installed" Foreground="White" />
 
         </StackPanel>
 
@@ -64,7 +69,8 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <uc:Spinner Grid.Row="0" Diameter="100" Thickness="2" IsActive="{Binding IsIconLoading}" Color="DimGray" />
+                                <uc:Spinner Grid.Row="0" Diameter="100" Thickness="2"
+                                            IsActive="{Binding IsIconLoading}" Color="DimGray" />
 
                                 <Image Grid.Row="0"
                                        Source="{Binding Icon}"
@@ -78,13 +84,14 @@
                                            Margin="8, 8, 8, 16"
                                            TextTrimming="CharacterEllipsis" />
 
-                                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0, 12, 0, 8">
+                                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal"
+                                            Margin="0, 12, 0, 8">
                                     <Button Width="50"
                                             Margin="0, 0, 6, 0"
                                             Content="🗑️"
                                             ToolTip="Delete this user imported livery"
                                             Visibility="{Binding IsUserImported, Converter={StaticResource BooleanToVisibility}}"
-                                            Command="{Binding DeleteImportedLiveryCommand}"/>
+                                            Command="{Binding DeleteImportedLiveryCommand}" />
                                     <Button MinWidth="148"
                                             Margin="0, 0, 6, 0"
                                             Content="{Binding ActionText}"

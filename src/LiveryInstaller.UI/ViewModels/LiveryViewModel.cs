@@ -63,7 +63,7 @@ public partial class LiveryViewModel(
     public Brush ActionBackground =>
         !IsInstalled ? Brushes.Green : Brushes.DarkRed;
 
-    private bool IsInstalled
+    public bool IsInstalled
     {
         get => livery.IsInstalled;
         set
