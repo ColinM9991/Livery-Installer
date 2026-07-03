@@ -96,6 +96,7 @@ jobs:
             --packTitle "${{ env.APP_FRIENDLY_NAME }}" `
             --packDir publish `
             --mainExe ${{ env.APP_NAME }}.UI.exe `
+            --framework vcredist100-x64 `
             --outputDir ./Releases `
             --releaseNotes "release_notes.md"
 
