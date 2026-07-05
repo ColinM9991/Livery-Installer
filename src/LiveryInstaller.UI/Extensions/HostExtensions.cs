@@ -1,5 +1,5 @@
-﻿using LiveryInstaller.UI.Models;
-using LiveryInstaller.UI.Models.Configuration;
+﻿using LiveryInstaller.Library.Models;
+using LiveryInstaller.Library.Models.Configuration;
 using LiveryInstaller.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

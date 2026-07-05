@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models;
-using LiveryInstaller.UI.Models.DTO;
+using LiveryInstaller.Library.Models.DTO;
+using LiveryInstaller.Library.Services.Liveries;
 using LiveryInstaller.UI.Services.Icons;
-using LiveryInstaller.UI.Services.Liveries;
 
 namespace LiveryInstaller.UI.ViewModels;
 

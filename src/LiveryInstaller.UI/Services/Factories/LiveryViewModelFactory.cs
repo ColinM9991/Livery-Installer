@@ -1,7 +1,8 @@
-﻿using LiveryInstaller.UI.Models.Configuration;
-using LiveryInstaller.UI.Models.DTO;
+﻿using LiveryInstaller.Library.Models.Configuration;
+using LiveryInstaller.Library.Models.DTO;
+using LiveryInstaller.Library.Services.Factories;
+using LiveryInstaller.Library.Services.Liveries;
 using LiveryInstaller.UI.Services.Icons;
-using LiveryInstaller.UI.Services.Liveries;
 using LiveryInstaller.UI.ViewModels;
 
 namespace LiveryInstaller.UI.Services.Factories;

@@ -35,7 +35,7 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LiveryInstaller.UI.LoggingDecoratorAttribute",
+        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LoggingDecoratorAttribute",
                 predicate: static (_, _) => true,
                 transform: static (node, _) => (node.TargetSymbol.ContainingNamespace.ToDisplayString(), node.TargetSymbol.Name))
             .Collect();
@@ -52,7 +52,7 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
         var sb = new IndentingStringBuilder();
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;")
             .AppendLine()
-            .AppendLine("namespace LiveryInstaller.UI.Extensions;")
+            .AppendLine($"namespace LiveryInstaller.SourceGenerated;")
             .AppendLine()
             .AppendLine("public static class DecoratedServiceCollectionExtensions")
             .AppendLine("{")

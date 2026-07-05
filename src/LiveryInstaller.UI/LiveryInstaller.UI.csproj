@@ -27,12 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="CabLib">
-            <HintPath>..\..\lib\CabLib\CabLib.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
         <None Update="liveryConfiguration.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -65,8 +59,10 @@
       <Resource Include="Images\warning.png" />
     </ItemGroup>
 
+
     <ItemGroup>
-      <ProjectReference Include="..\LiveryInstaller.SourceGenerators\LiveryInstaller.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\LiveryInstaller.Library\LiveryInstaller.Library.csproj" />
+        <ProjectReference Include="..\LiveryInstaller.SourceGenerators\LiveryInstaller.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

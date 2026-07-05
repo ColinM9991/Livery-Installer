@@ -1,0 +1,11 @@
+﻿using LiveryInstaller.Library.Models.DTO;
+
+namespace LiveryInstaller.Library.Services.Configuration;
+
+[LoggingDecorator]
+public interface ILiveryConfigurationService
+{
+    Task InstallLiveryAsync(string aircraftName, string variantName, LiveryDto livery);
+    
+    Task RemoveLiveryAsync(string aircraftName, string variantName, string textureId);
+}

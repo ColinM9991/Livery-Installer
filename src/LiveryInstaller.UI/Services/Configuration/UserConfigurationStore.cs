@@ -1,7 +1,9 @@
 ﻿using System.IO;
 using System.Text.Json;
+using LiveryInstaller.Library.Models.Configuration;
+using LiveryInstaller.Library.Services;
+using LiveryInstaller.Library.Services.Configuration;
 using LiveryInstaller.UI.Helpers;
-using LiveryInstaller.UI.Models.Configuration;
 
 namespace LiveryInstaller.UI.Services.Configuration;
 

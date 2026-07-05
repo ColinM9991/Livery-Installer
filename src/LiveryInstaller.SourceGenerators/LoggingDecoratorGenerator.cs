@@ -12,48 +12,14 @@ namespace LiveryInstaller.SourceGenerators
                 ctx.AddSource("LoggingDecoratorGenerator.g.cs", """
                                                                 using System;
                                                                 
-                                                                namespace LiveryInstaller.UI;
-
                                                                 [AttributeUsage(AttributeTargets.Interface)]
                                                                 public sealed class LoggingDecoratorAttribute : Attribute { }
                                                                 """));
 
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
-                "LiveryInstaller.UI.LoggingDecoratorAttribute",
+                "LoggingDecoratorAttribute",
                 predicate: static (_, _) => true,
-                transform: static (ctx, _) =>
-                {
-                    var symbol = (INamedTypeSymbol)ctx.TargetSymbol;
-
-                    return new InterfaceModel(
-                        symbol.ContainingNamespace.ToDisplayString(),
-                        symbol.Name,
-                        symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                        symbol.GetMembers()
-                            .OfType<IMethodSymbol>()
-                            .Where(static y => y.MethodKind == MethodKind.Ordinary)
-                            .Select(static y => new MethodModel(
-                                y.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                                y.ReturnType switch
-                                {
-                                    { SpecialType: SpecialType.System_Void } => ReturnKind.Void,
-                                    INamedTypeSymbol { IsGenericType: false, Name: "Task" } => ReturnKind.Task,
-                                    INamedTypeSymbol { IsGenericType: false, Name: "ValueTask" } => ReturnKind
-                                        .ValueTask,
-                                    INamedTypeSymbol { IsGenericType: true, Name: "Task" } => ReturnKind
-                                        .GenericTask,
-                                    INamedTypeSymbol { IsGenericType: true, Name: "ValueTask" } => ReturnKind
-                                        .GenericTask,
-                                    _ => ReturnKind.NonVoid
-                                },
-                                y.Name,
-                                y.Parameters
-                                    .Select(static z => new ParameterModel(
-                                        z.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                                        z.Name))
-                                    .ToEquatableArray()))
-                            .ToEquatableArray());
-                });
+                transform: static (ctx, _) => InterfaceModel.Create((INamedTypeSymbol)ctx.TargetSymbol));
 
             context.RegisterSourceOutput(syntaxNodes, Execute);
         }
@@ -92,10 +58,13 @@ namespace LiveryInstaller.SourceGenerators
                 or ReturnKind.GenericValueTask;
 
             sb.Append("public ");
+            
             if (isTask)
                 sb.Append("async ");
+            
             sb.Append(
                 $"{method.ReturnType} {method.Name}({string.Join(", ", method.Parameters.Select(x => $"{x.Type} {x.Name}"))}) ");
+            
             sb.AppendLine();
             
             HandleMethodBody(method, sb, isTask);

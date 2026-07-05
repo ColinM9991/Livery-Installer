@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveryInstaller.UI.Models;
-using LiveryInstaller.UI.Models.Configuration;
+using LiveryInstaller.Library.Models.Configuration;
 using LiveryInstaller.UI.Services;
 using Microsoft.Extensions.Options;
 
