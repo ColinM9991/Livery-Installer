@@ -35,29 +35,49 @@ public sealed class DecoratedServiceCollectionGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LoggingDecoratorAttribute",
+        var decoratedServices = context.SyntaxProvider.ForAttributeWithMetadataName("LiveryInstaller.Library.LoggingDecoratorAttribute",
                 predicate: static (_, _) => true,
                 transform: static (node, _) => (node.TargetSymbol.ContainingNamespace.ToDisplayString(), node.TargetSymbol.Name))
             .Collect();
+        
+        var combined = context.CompilationProvider
+            .Combine(decoratedServices)
+            .Select((x, _) =>
+            {
+                var (compilation, services) = x;
+                return (compilation.AssemblyName, services);
+            });
 
-        context.RegisterSourceOutput(decoratedServices, Execute);
+        context.RegisterSourceOutput(combined, static (spc, source) =>
+        {
+            var (assemblyName, services) = source;
+
+            Execute(spc, assemblyName, services);
+        });
     }
 
-    private static void Execute(SourceProductionContext context, ImmutableArray<(string Namespace, string InterfaceName)> symbols)
+    private static void Execute(SourceProductionContext context, string assemblyName, ImmutableArray<(string Namespace, string InterfaceName)> symbols)
     {
         const string className = "DecoratedServiceCollectionExtensions";
 
         if (symbols.IsEmpty) return;
 
+        var lastDot = assemblyName.LastIndexOf('.');
+        var assemblyUniqueName = lastDot >= 0
+            ? assemblyName.Substring(lastDot + 1)
+            : assemblyName;
+
+        var extensionMethodName = $"Add{assemblyUniqueName}DecoratedServices";
+
         var sb = new IndentingStringBuilder();
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;")
             .AppendLine()
-            .AppendLine($"namespace LiveryInstaller.SourceGenerated;")
+            .AppendLine($"namespace {assemblyName};")
             .AppendLine()
             .AppendLine("public static class DecoratedServiceCollectionExtensions")
             .AppendLine("{")
             .IncrementIndentation()
-            .AppendLine("public static IServiceCollection AddDecoratedServices(this IServiceCollection services)")
+            .AppendLine($"public static IServiceCollection {extensionMethodName}(this IServiceCollection services)")
             .AppendLine("{")
             .IncrementIndentation();
         

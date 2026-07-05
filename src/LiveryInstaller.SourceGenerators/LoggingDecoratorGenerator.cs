@@ -8,16 +8,8 @@ namespace LiveryInstaller.SourceGenerators
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterPostInitializationOutput(ctx =>
-                ctx.AddSource("LoggingDecoratorGenerator.g.cs", """
-                                                                using System;
-                                                                
-                                                                [AttributeUsage(AttributeTargets.Interface)]
-                                                                public sealed class LoggingDecoratorAttribute : Attribute { }
-                                                                """));
-
             var syntaxNodes = context.SyntaxProvider.ForAttributeWithMetadataName(
-                "LoggingDecoratorAttribute",
+                "LiveryInstaller.Library.LoggingDecoratorAttribute",
                 predicate: static (_, _) => true,
                 transform: static (ctx, _) => InterfaceModel.Create((INamedTypeSymbol)ctx.TargetSymbol));
 

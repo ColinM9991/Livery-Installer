@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using LiveryInstaller.Library;
 using LiveryInstaller.Library.Models.Configuration;
 using LiveryInstaller.Library.Services;
 using LiveryInstaller.Library.Services.Configuration;
 using LiveryInstaller.Library.Services.Factories;
 using LiveryInstaller.Library.Services.Liveries;
 using LiveryInstaller.Library.Services.Parsing;
-using LiveryInstaller.SourceGenerated;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Configuration;
 using LiveryInstaller.UI.Services.Factories;
@@ -51,7 +51,9 @@ public static class ServiceCollectionExtensions
         RegisterIconServices(services);
         RegisterUpdaterServices(services, builder.Configuration);
 
-        services.AddDecoratedServices();
+        services
+            .AddUIDecoratedServices()
+            .AddLibraryDecoratedServices();
 
         return builder;
     }

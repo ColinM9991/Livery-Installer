@@ -20,7 +20,7 @@ internal readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable
 
     public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)Array).GetEnumerator();
 
-    public override bool Equals(object? obj) =>
+    public override bool Equals(object obj) =>
         obj is EquatableArray<T> other && Equals(other);
 
     public override int GetHashCode()
