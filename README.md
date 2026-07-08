@@ -2,6 +2,10 @@
 
 ## Notice
 
+At present this is only supported on Windows 11. This is due to the use of the Windows 11 Fluent theme.
+
+I will work on custom theming to support both Windows 10 and Windows 11.
+
 For now this does requires one of the following:
 
 1. Your user requires Modify permissions on the Prepar3D installation folder.
