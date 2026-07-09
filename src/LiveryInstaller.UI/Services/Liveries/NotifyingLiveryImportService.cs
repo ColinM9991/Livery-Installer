@@ -30,6 +30,11 @@ public sealed class NotifyingLiveryImportService(
 
             toastService.Success("Livery imported successfully");
         }
+        catch (InvalidOperationException ex)
+        {
+            toastService.Error(ex.Message);
+            throw;
+        }
         catch
         {
             toastService.Error($"Failed to import livery: {livery.Livery.Name}. Please refer to the log");

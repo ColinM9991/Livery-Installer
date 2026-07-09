@@ -39,7 +39,14 @@ public partial class ImportLiveryPageViewModel(
     [RelayCommand(CanExecute = nameof(CanImport))]
     private async Task ImportAsync()
     {
-        await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
+        try
+        {
+            await liveryImportService.ImportLiveryAsync(LoadedLivery, IconFile);
+        }
+        catch
+        {
+            // Swallow exception. User notified via notifications.
+        }
 
         IsLoading = false;
         LoadedLivery = null;
