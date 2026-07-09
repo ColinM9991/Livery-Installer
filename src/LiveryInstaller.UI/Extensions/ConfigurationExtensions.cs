@@ -28,7 +28,8 @@ public static class ConfigurationExtensions
             var registryKeys = new Dictionary<SimulatorType, string>
             {
                 [SimulatorType.Prepar3Dv4] = @"SOFTWARE\Lockheed Martin\Prepar3D v4",
-                [SimulatorType.Prepar3Dv5] = @"SOFTWARE\Lockheed Martin\Prepar3D v5"
+                [SimulatorType.Prepar3Dv5] = @"SOFTWARE\Lockheed Martin\Prepar3D v5",
+                [SimulatorType.Prepar3Dv6] = @"SOFTWARE\Lockheed Martin\Prepar3D v6"
             };
 
             foreach (var (simulatorType, registryKey) in registryKeys)

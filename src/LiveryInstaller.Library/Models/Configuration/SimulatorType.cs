@@ -7,5 +7,7 @@ public enum SimulatorType
     [Display(Name = "Prepar3D v4")]
     Prepar3Dv4,
     [Display(Name = "Prepar3D v5")]
-    Prepar3Dv5
+    Prepar3Dv5,
+    [Display(Name = "Prepar3D v6")]
+    Prepar3Dv6
 }
