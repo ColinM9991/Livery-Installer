@@ -1,4 +1,5 @@
 using LiveryInstaller.Library.Models.Configuration;
+using LiveryInstaller.Library.Models.INI;
 using LiveryInstaller.Library.Services.Parsing;
 using AircraftConfiguration = LiveryInstaller.Library.Models.INI.AircraftConfiguration;
 
@@ -40,11 +41,15 @@ public sealed class AircraftConfigurationService(
         await SaveAircraftConfigurationAsync(aircraftConfiguration, variantConfigPath);
     }
 
-    public async Task<AircraftConfiguration> LoadAircraftConfigurationAsync(string configurationFile)
+    public async Task<AircraftConfiguration> LoadAircraftConfigurationAsync(string configurationFile) => await LoadAircraftFileAsync<AircraftConfiguration>(configurationFile);
+
+    public async Task<AircraftSettings> LoadAircraftSettingsAsync(string configurationFile) => await LoadAircraftFileAsync<AircraftSettings>(configurationFile);
+
+    private async Task<T> LoadAircraftFileAsync<T>(string configurationFile)
     {
         using var aircraftConfig = new StreamReader(configurationFile);
         
-        return await aircraftConfigurationDeserializer.DeserializeAsync(aircraftConfig);
+        return await aircraftConfigurationDeserializer.DeserializeAsync<T>(aircraftConfig);
     }
 
     private async Task SaveAircraftConfigurationAsync(AircraftConfiguration configuration, string configurationFile)

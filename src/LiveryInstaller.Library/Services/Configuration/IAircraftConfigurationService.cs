@@ -1,4 +1,5 @@
 ﻿using LiveryInstaller.Library.Models.Configuration;
+using LiveryInstaller.Library.Models.INI;
 using AircraftConfiguration = LiveryInstaller.Library.Models.INI.AircraftConfiguration;
 
 namespace LiveryInstaller.Library.Services.Configuration;
@@ -28,4 +29,6 @@ public interface IAircraftConfigurationService
     Task RemoveLiveryAsync(SimulatorType simulatorType, string variantName, string atcId);
 
     Task<AircraftConfiguration> LoadAircraftConfigurationAsync(string configurationFile);
+    
+    Task<AircraftSettings> LoadAircraftSettingsAsync(string configurationFile);
 }

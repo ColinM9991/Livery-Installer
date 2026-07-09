@@ -12,5 +12,5 @@ public interface IAircraftConfigurationDeserializer
     /// </summary>
     /// <param name="streamReader">The StreamReader to read the serialized configuration from.</param>
     /// <returns>A Task that represents the asynchronous operation and returns the deserialized AircraftConfiguration.</returns>
-    Task<AircraftConfiguration> DeserializeAsync(StreamReader streamReader);
+    Task<T> DeserializeAsync<T>(StreamReader streamReader);
 }

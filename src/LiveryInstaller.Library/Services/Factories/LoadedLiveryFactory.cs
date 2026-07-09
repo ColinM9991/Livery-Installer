@@ -10,18 +10,15 @@ public sealed class LoadedLiveryFactory(
     IAirlinesConfigurationService airlinesConfigurationService,
     ILogger<LoadedLiveryFactory> logger) : ILoadedLiveryFactory
 {
-    public LoadedLivery Create(string packagePath, AircraftConfiguration aircraftConfiguration)
+    public LoadedLivery Create(string packagePath, AircraftConfiguration aircraftConfiguration, AircraftSettings aircraftSettings)
     {
         var flightSimSection = aircraftConfiguration.GetFirstFlightSimSection();
-        var uiName = flightSimSection.GetValue("ui_variation");
-        var title = flightSimSection.GetValue("title");
+        logger.LogInformation("Extracting aircraft family from variant: {Title}", aircraftSettings.Variant);
 
-        logger.LogInformation("Extracting aircraft and variant from title: {Title}", title);
-
-        var (aircraft, variant) = ExtractAircraftAndVariant(title);
+        var aircraftFamily = ExtractAircraftFamily(aircraftSettings.Variant);
         var airlineName = GetAirlineName(flightSimSection);
 
-        logger.LogInformation("Extracted aircraft: {Aircraft} - variant: {Variant}", aircraft, variant);
+        logger.LogInformation("Extracted aircraft: {Aircraft} - variant: {Variant}", aircraftFamily, aircraftSettings.Variant);
 
         var manufacturer = flightSimSection.GetValue("ui_manufacturer");
         var aircraftType = flightSimSection.GetValue("ui_type");
@@ -29,24 +26,23 @@ public sealed class LoadedLiveryFactory(
         var livery = new LiveryDto(
             flightSimSection.GetValue("texture"),
             flightSimSection.GetValue("atc_id"),
-            uiName,
+            aircraftSettings.Name,
             flightSimSection.GetValue("description"),
             airlineName,
-            title.Replace("|", "_"));
+            aircraftSettings.Name.Replace("|", "_"));
 
-        return new LoadedLivery(packagePath, aircraft, variant, manufacturer, aircraftType, livery);
+        return new LoadedLivery(packagePath, aircraftFamily, aircraftSettings.Variant, manufacturer, aircraftType, livery);
     }
 
-    private static (string aircraft, string variant) ExtractAircraftAndVariant(string title)
+    private static string ExtractAircraftFamily(string title)
     {
         var aircraftMatch = RegularExpressions.AircraftRegex().Match(title);
-        var variantMatch = RegularExpressions.AircraftVariantRegex().Match(title);
 
-        return (aircraftMatch.Groups[1].Value, variantMatch.Groups[1].Value);
+        return aircraftMatch.Groups[1].Value;
     }
 
     /// <summary>
-    /// Again, PMDG's lack of standardization is appalling. There isn't one single source to pull the airliner information from so we go through an election process.
+    /// There isn't one single source to pull the airliner information from so we go through an election process.
     /// </summary>
     /// <param name="flightSimSection"></param>
     /// <returns></returns>
@@ -81,13 +77,6 @@ public sealed class LoadedLiveryFactory(
 
 public static partial class RegularExpressions
 {
-    /// <summary>
-    /// Very little consistency in the naming of aircraft variants within the PTP configs. Regular Expression to extract the variant name.
-    /// </summary>
-    /// <returns></returns>
-    [GeneratedRegex("^(PMDG \\d+-?[A-Za-z0-9]+(?: [A-Z]{2,})?)", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
-    public static partial Regex AircraftVariantRegex();
-
     [GeneratedRegex("^PMDG (\\d{3})", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
     public static partial Regex AircraftRegex();
 

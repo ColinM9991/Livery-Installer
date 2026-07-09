@@ -4,7 +4,7 @@ using LiveryInstaller.Library.Models.Parsing;
 namespace LiveryInstaller.Library.Services.Parsing;
 
 /// <inheritdoc />
-public sealed class AircraftConfigurationParser : IAircraftConfigurationParser
+public sealed class AircraftConfigurationParser : IAircraftConfigurationParser<AircraftConfiguration>
 {
     /// <inheritdoc />
     public async Task<AircraftConfiguration> ParseAsync(IniTokenStream tokens)

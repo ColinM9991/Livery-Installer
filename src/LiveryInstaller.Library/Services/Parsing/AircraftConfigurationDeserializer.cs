@@ -5,13 +5,14 @@ namespace LiveryInstaller.Library.Services.Parsing;
 
 public sealed class AircraftConfigurationDeserializer(
     IIniLexer lexer,
-    IAircraftConfigurationParser parser) : IAircraftConfigurationDeserializer
+    IParserProvider parserProvider) : IAircraftConfigurationDeserializer
 {
-    public async Task<AircraftConfiguration> DeserializeAsync(StreamReader streamReader)
+    public async Task<T> DeserializeAsync<T>(StreamReader streamReader)
     {
         var tokens = lexer.LexAsync(streamReader);
         await using var tokenStream = new IniTokenStream(tokens);
         
+        var parser = parserProvider.Provide<T>();
         return await parser.ParseAsync(tokenStream);
     }
 }

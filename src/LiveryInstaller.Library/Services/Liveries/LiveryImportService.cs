@@ -18,9 +18,11 @@ public sealed class LiveryImportService(
     {
         var extractedPath = await liveryExtractor.ExtractLiveryAsync(liveryPath);
         var config = Path.Combine(extractedPath, "Config.cfg");
+        var settings = Path.Combine(extractedPath, "Settings.dat");
         var aircraftConfiguration = await aircraftConfigurationService.LoadAircraftConfigurationAsync(config);
+        var aircraftSettings = await aircraftConfigurationService.LoadAircraftSettingsAsync(settings);
 
-        return loadedLiveryFactory.Create(liveryPath, aircraftConfiguration);
+        return loadedLiveryFactory.Create(liveryPath, aircraftConfiguration, aircraftSettings);
     }
 
     public async Task ImportLiveryAsync(LoadedLivery livery, string iconFile)

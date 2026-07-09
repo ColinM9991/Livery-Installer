@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LiveryInstaller.Library;
 using LiveryInstaller.Library.Models.Configuration;
+using LiveryInstaller.Library.Models.INI;
 using LiveryInstaller.Library.Services;
 using LiveryInstaller.Library.Services.Configuration;
 using LiveryInstaller.Library.Services.Factories;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog.Core;
 using Velopack;
 using Velopack.Sources;
+using AircraftConfiguration = LiveryInstaller.Library.Models.INI.AircraftConfiguration;
 
 namespace LiveryInstaller.UI.Extensions;
 
@@ -99,7 +101,9 @@ public static class ServiceCollectionExtensions
 
     private static void RegisterParsingServices(IServiceCollection services)
     {
-        services.AddSingleton<IAircraftConfigurationParser, AircraftConfigurationParser>();
+        services.AddSingleton<IParserProvider, ParserProvider>();
+        services.AddSingleton<IAircraftConfigurationParser<AircraftConfiguration>, AircraftConfigurationParser>();
+        services.AddSingleton<IAircraftConfigurationParser<AircraftSettings>, AircraftSettingsParser>();
         services.AddSingleton<IIniLexer, IniLexer>();
         services.AddSingleton<IAircraftConfigurationDeserializer, AircraftConfigurationDeserializer>();
         services.AddSingleton<IAircraftConfigurationSerializer, AircraftConfigurationSerializer>();
