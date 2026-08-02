@@ -29,7 +29,7 @@ public sealed class LoadedLiveryFactory(
             aircraftSettings.Name,
             flightSimSection.GetValue("description"),
             airlineName,
-            aircraftSettings.Name.Replace("|", "_"));
+            aircraftSettings.Name.Replace("|", "_").Replace("\"", "_"));
 
         return new LoadedLivery(packagePath, aircraftFamily, aircraftSettings.Variant, manufacturer, aircraftType, livery);
     }
