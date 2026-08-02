@@ -40,10 +40,13 @@ public sealed class AircraftSettingsParser : IAircraftConfigurationParser<Aircra
 
                 var key = await tokens.ExpectAsync(IniTokenType.Text);
                 _ = await tokens.MatchAsync(IniTokenType.Equals);
-                var value = await tokens.ExpectAsync(IniTokenType.Text);
+
+                var value = await tokens.CheckAsync(IniTokenType.NewLine)
+                    ? string.Empty
+                    : (await tokens.ExpectAsync(IniTokenType.Text)).Value;
 
                 var kvp = bucket[currentSection];
-                kvp[key.Value] = value.Value;
+                kvp[key.Value] = value ?? string.Empty;
 
                 continue;
             }
