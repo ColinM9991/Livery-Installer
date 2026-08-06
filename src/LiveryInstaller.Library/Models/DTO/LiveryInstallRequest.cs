@@ -8,10 +8,7 @@ namespace LiveryInstaller.Library.Models.DTO;
 /// <param name="SimulatorType">The simulator the texture is being added for.</param>
 /// <param name="AircraftName">Aircraft name.</param>
 /// <param name="VariantName">Variant name.</param>
-/// <param name="LiveryName">Livery name.</param>
-/// <param name="LiveryPath">Livery path.</param>
-/// <param name="TextureId">Texture ID.</param>
-/// <param name="AtcId">ATC ID.</param>
+/// <param name="Livery">The <see cref="AvailableLivery"/>.</param>
 public record LiveryInstallRequest(
     SimulatorType SimulatorType,
     string AircraftName,

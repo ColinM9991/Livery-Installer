@@ -7,6 +7,7 @@ using LiveryInstaller.Library.Services.Configuration;
 using LiveryInstaller.Library.Services.Factories;
 using LiveryInstaller.Library.Services.Liveries;
 using LiveryInstaller.Library.Services.Parsing;
+using LiveryInstaller.Library.Services.Pipeline;
 using LiveryInstaller.UI.Services;
 using LiveryInstaller.UI.Services.Configuration;
 using LiveryInstaller.UI.Services.Factories;
@@ -55,7 +56,8 @@ public static class ServiceCollectionExtensions
 
         services
             .AddUIDecoratedServices()
-            .AddLibraryDecoratedServices();
+            .AddLibraryDecoratedServices()
+            .AddPipelineOperations();
 
         return builder;
     }

@@ -10,9 +10,8 @@ public class LiveryExtractor(
 {
     public static readonly byte[] Value = Convert.FromBase64String("UE1ER19TZWN1cml0eUNvZGU=");
     /// <inheritdoc />
-    public Task<string> ExtractLiveryAsync(string liveryPath)
+    public async Task<string> ExtractLiveryAsync(string liveryPath)
     {
-        TaskCompletionSource<string> tcs = new();
         using var extractor = CreateExtractor();
         if (!extractor.IsFileCabinet(liveryPath, out _))
         {
@@ -27,17 +26,15 @@ public class LiveryExtractor(
 
         try
         {
-            extractor.ExtractFile(liveryPath, tempPath);
-            tcs.SetResult(tempPath);
+            await Task.Run(() => extractor.ExtractFile(liveryPath, tempPath));
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to extract livery");
-            tcs.SetException(e);
             throw;
         }
 
-        return tcs.Task;
+        return tempPath;
     }
 
     /// <summary>

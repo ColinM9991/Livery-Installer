@@ -1,14 +1,14 @@
 ﻿using LiveryInstaller.Library.Models.DTO;
-using LiveryInstaller.Library.Services.Configuration;
+using LiveryInstaller.Library.Services.Pipeline;
+using LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
+using LiveryInstaller.Library.Services.Pipeline.Steps.UninstallLiverySteps;
 
 namespace LiveryInstaller.Library.Services.Liveries;
 
 /// <inheritdoc />
 public class LiveryInstallService(
-    ILiveryExtractor liveryExtractor,
-    ITextureInstallService textureInstallService,
-    IAircraftConfigurationService aircraftConfigurationService,
-    IVariantConfigurationService variantConfigurationService)
+    IPipeline<LiveryInstallationContext> installPipeline,
+    IPipeline<LiveryUninstallContext> uninstallPipeline)
     : ILiveryInstallService
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -19,16 +19,15 @@ public class LiveryInstallService(
         await _semaphore.WaitAsync();
         try
         {
-            var extractionPath = await liveryExtractor.ExtractLiveryAsync(request.LiveryPath);
-
-            textureInstallService.InstallTexture(request.SimulatorType, extractionPath, request.VariantName,
-                request.TextureId);
-
-            await aircraftConfigurationService.AddLiveryAsync(request.SimulatorType, request.VariantName,
-                extractionPath);
-
-            variantConfigurationService.InstallVariantConfiguration(request.SimulatorType, extractionPath,
-                request.AircraftName, request.AtcId);
+            await installPipeline.ExecuteAsync(
+                new LiveryInstallationContext(
+                    request.SimulatorType,
+                    request.LiveryPath,
+                    request.VariantName,
+                    request.TextureId,
+                    request.AircraftName,
+                    request.AtcId),
+                CancellationToken.None);
         }
         finally
         {
@@ -45,11 +44,14 @@ public class LiveryInstallService(
 
         try
         {
-            variantConfigurationService.UninstallVariantConfiguration(request.SimulatorType, request.AircraftName,
-                request.AtcId);
-            await aircraftConfigurationService.RemoveLiveryAsync(request.SimulatorType, request.VariantName,
-                request.AtcId);
-            textureInstallService.UninstallTexture(request.SimulatorType, request.VariantName, request.TextureId);
+            await uninstallPipeline.ExecuteAsync(
+                new LiveryUninstallContext(
+                    request.SimulatorType,
+                    request.AircraftName,
+                    request.VariantName,
+                    request.TextureId,
+                    request.AtcId),
+                CancellationToken.None);
         }
         finally
         {
