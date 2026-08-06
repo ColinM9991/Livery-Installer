@@ -13,9 +13,34 @@ public sealed class Pipeline<TContext> : IPipeline<TContext>
     /// <inheritdoc />
     public async Task ExecuteAsync(TContext context, CancellationToken cancellationToken)
     {
-        foreach (var step in _steps)
+        Stack<ICompensatableStep<TContext>> compensatableSteps = [];
+
+        try
         {
-            await step.ExecuteAsync(context, cancellationToken);
+            foreach (var step in _steps)
+            {
+                await step.ExecuteAsync(context, cancellationToken);
+
+                if (step is ICompensatableStep<TContext> compensatableStep)
+                {
+                    compensatableSteps.Push(compensatableStep);
+                }
+            }
+        }
+        catch
+        {
+            while (compensatableSteps.TryPop(out var compensatableStep))
+            {
+                try
+                {
+                    await compensatableStep.UndoAsync(context, CancellationToken.None);
+                }
+                catch
+                {
+                }
+            }
+
+            throw;
         }
     }
 }

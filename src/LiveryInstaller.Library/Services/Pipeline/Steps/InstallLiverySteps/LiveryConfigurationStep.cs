@@ -2,16 +2,23 @@
 
 namespace LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
 
-internal sealed class LiveryConfigurationStep(IAircraftConfigurationService aircraftConfigurationService) : IPipelineStep<LiveryInstallationContext>
+internal sealed class LiveryConfigurationStep(IAircraftConfigurationService aircraftConfigurationService)
+    : IPipelineStep<LiveryInstallationContext>, ICompensatableStep<LiveryInstallationContext>
 {
-    private readonly IAircraftConfigurationService _aircraftConfigurationService =
-        aircraftConfigurationService ?? throw new ArgumentNullException(nameof(aircraftConfigurationService));
-
     public async Task ExecuteAsync(LiveryInstallationContext context, CancellationToken cancellationToken)
     {
-        await _aircraftConfigurationService.AddLiveryAsync(
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        await aircraftConfigurationService.AddLiveryAsync(
             context.SimulatorType,
             context.VariantName, 
             context.ExtractionPath);
+    }
+
+    public async Task UndoAsync(LiveryInstallationContext context, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        await aircraftConfigurationService.RemoveLiveryAsync(context.SimulatorType, context.VariantName, context.AtcId);
     }
 }

@@ -2,8 +2,9 @@
 
 namespace LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
 
-internal sealed class LiveryInstallationStep(ITextureInstallService textureInstallService)
-    : IPipelineStep<LiveryInstallationContext>
+internal sealed class LiveryInstallationStep(
+    ITextureInstallService textureInstallService)
+    : IPipelineStep<LiveryInstallationContext>, ICompensatableStep<LiveryInstallationContext>
 {
     private readonly ITextureInstallService _textureInstallService =
         textureInstallService ?? throw new ArgumentNullException(nameof(textureInstallService));
@@ -15,6 +16,13 @@ internal sealed class LiveryInstallationStep(ITextureInstallService textureInsta
             context.ExtractionPath,
             context.VariantName,
             context.TextureId);
+
+        return Task.CompletedTask;
+    }
+
+    public Task UndoAsync(LiveryInstallationContext context, CancellationToken cancellationToken)
+    {
+        _textureInstallService.UninstallTexture(context.SimulatorType, context.VariantName, context.TextureId);
 
         return Task.CompletedTask;
     }

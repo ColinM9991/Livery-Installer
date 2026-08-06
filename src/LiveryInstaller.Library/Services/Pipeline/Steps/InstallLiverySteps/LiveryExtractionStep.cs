@@ -2,14 +2,26 @@
 
 namespace LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
 
-internal sealed class LiveryExtractionStep(ILiveryExtractor extractor) : IPipelineStep<LiveryInstallationContext>
+internal sealed class LiveryExtractionStep(
+    ILiveryExtractor extractor,
+    IFileSystem fileSystem)
+    : IPipelineStep<LiveryInstallationContext>, ICompensatableStep<LiveryInstallationContext>
 {
-    private readonly ILiveryExtractor _extractor = extractor ?? throw new ArgumentNullException(nameof(extractor));
-    
     public async Task ExecuteAsync(LiveryInstallationContext context, CancellationToken cancellationToken)
     {
-        var extractionPath = await _extractor.ExtractLiveryAsync(context.LiveryPath);
+        cancellationToken.ThrowIfCancellationRequested();
         
+        var extractionPath = await extractor.ExtractLiveryAsync(context.LiveryPath);
+
         context.ExtractionPath = extractionPath;
+    }
+
+    public Task UndoAsync(LiveryInstallationContext context, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        fileSystem.DirectoryDelete(context.ExtractionPath);
+        
+        return Task.CompletedTask;
     }
 }

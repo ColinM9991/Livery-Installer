@@ -8,11 +8,13 @@ public sealed class TextureInstallService(
     ISimulatorService simulatorService) : ITextureInstallService
 {
     /// <inheritdoc />
-    public void InstallTexture(SimulatorType simulatorType, string sourceArchiveDirectory, string variantName, string textureId)
+    public void InstallTexture(SimulatorType simulatorType, string sourceArchiveDirectory, string variantName,
+        string textureId)
     {
+        var textureDestination = simulatorService.GetLiveryPath(simulatorType, variantName, textureId);
         fileSystem.DirectoryCopy(
             Path.Combine(sourceArchiveDirectory, $"Texture.{textureId}"),
-            simulatorService.GetLiveryPath(simulatorType, variantName, textureId));
+            textureDestination);
     }
 
     /// <inheritdoc />

@@ -112,6 +112,10 @@ public partial class LiveryViewModel(
 
             IsInstalled = true;
         }
+        catch
+        {
+            // Do nothing, swallow exception. Services log and notify the user
+        }
         finally
         {
             IsInvokingCommand = false;
