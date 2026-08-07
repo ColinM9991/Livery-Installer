@@ -11,44 +11,64 @@ public sealed class AircraftConfigurationService(
     IAircraftConfigurationDeserializer aircraftConfigurationDeserializer,
     IAircraftConfigurationSerializer aircraftConfigurationSerializer) : IAircraftConfigurationService
 {
+    private readonly SemaphoreSlim _semaphore = new(1);
+
     /// <inheritdoc />
     public async Task AddLiveryAsync(SimulatorType simulatorType, string variantName, string archiveDirectory)
     {
-        var aircraftConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
-        var tempConfigPath = Path.Combine(archiveDirectory, "Config.cfg");
+        await _semaphore.WaitAsync();
+        try
+        {
+            var aircraftConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
+            var tempConfigPath = Path.Combine(archiveDirectory, "Config.cfg");
 
-        var deserializedTempConfig = await LoadAircraftConfigurationAsync(tempConfigPath);
-        var deserializedAircraftConfig = await LoadAircraftConfigurationAsync(aircraftConfigPath);
+            var deserializedTempConfig = await LoadAircraftConfigurationAsync(tempConfigPath);
+            var deserializedAircraftConfig = await LoadAircraftConfigurationAsync(aircraftConfigPath);
 
-        deserializedAircraftConfig.Merge(deserializedTempConfig);
+            deserializedAircraftConfig.Merge(deserializedTempConfig);
 
-        await SaveAircraftConfigurationAsync(deserializedAircraftConfig, aircraftConfigPath);
+            await SaveAircraftConfigurationAsync(deserializedAircraftConfig, aircraftConfigPath);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     /// <inheritdoc />
     public async Task RemoveLiveryAsync(SimulatorType simulatorType, string variantName, string atcId)
     {
-        var variantConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
+        await _semaphore.WaitAsync();
+        try
+        {
+            var variantConfigPath = simulatorService.GetVariantConfigurationPath(simulatorType, variantName);
 
-        var aircraftConfiguration = await LoadAircraftConfigurationAsync(variantConfigPath);
+            var aircraftConfiguration = await LoadAircraftConfigurationAsync(variantConfigPath);
 
-        var liverySection = aircraftConfiguration.FindFlightSimSection(atcId);
-        if (liverySection is null)
-            return;
+            var liverySection = aircraftConfiguration.FindFlightSimSection(atcId);
+            if (liverySection is null)
+                return;
 
-        aircraftConfiguration.RemoveSection(liverySection);
-        
-        await SaveAircraftConfigurationAsync(aircraftConfiguration, variantConfigPath);
+            aircraftConfiguration.RemoveSection(liverySection);
+
+            await SaveAircraftConfigurationAsync(aircraftConfiguration, variantConfigPath);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
-    public async Task<AircraftConfiguration> LoadAircraftConfigurationAsync(string configurationFile) => await LoadAircraftFileAsync<AircraftConfiguration>(configurationFile);
+    public async Task<AircraftConfiguration> LoadAircraftConfigurationAsync(string configurationFile) =>
+        await LoadAircraftFileAsync<AircraftConfiguration>(configurationFile);
 
-    public async Task<AircraftSettings> LoadAircraftSettingsAsync(string configurationFile) => await LoadAircraftFileAsync<AircraftSettings>(configurationFile);
+    public async Task<AircraftSettings> LoadAircraftSettingsAsync(string configurationFile) =>
+        await LoadAircraftFileAsync<AircraftSettings>(configurationFile);
 
     private async Task<T> LoadAircraftFileAsync<T>(string configurationFile)
     {
         using var aircraftConfig = new StreamReader(configurationFile);
-        
+
         return await aircraftConfigurationDeserializer.DeserializeAsync<T>(aircraftConfig);
     }
 

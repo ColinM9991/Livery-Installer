@@ -11,28 +11,18 @@ public class LiveryInstallService(
     IPipeline<LiveryUninstallContext> uninstallPipeline)
     : ILiveryInstallService
 {
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-
     /// <inheritdoc />
     public async Task InstallLiveryAsync(LiveryInstallRequest request)
     {
-        await _semaphore.WaitAsync();
-        try
-        {
-            await installPipeline.ExecuteAsync(
-                new LiveryInstallationContext(
-                    request.SimulatorType,
-                    request.LiveryPath,
-                    request.VariantName,
-                    request.TextureId,
-                    request.AircraftName,
-                    request.AtcId),
-                CancellationToken.None);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        await installPipeline.ExecuteAsync(
+            new LiveryInstallationContext(
+                request.SimulatorType,
+                request.LiveryPath,
+                request.VariantName,
+                request.TextureId,
+                request.AircraftName,
+                request.AtcId),
+            CancellationToken.None);
     }
 
     /// <inheritdoc />
@@ -40,22 +30,13 @@ public class LiveryInstallService(
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        await _semaphore.WaitAsync();
-
-        try
-        {
-            await uninstallPipeline.ExecuteAsync(
-                new LiveryUninstallContext(
-                    request.SimulatorType,
-                    request.AircraftName,
-                    request.VariantName,
-                    request.TextureId,
-                    request.AtcId),
-                CancellationToken.None);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        await uninstallPipeline.ExecuteAsync(
+            new LiveryUninstallContext(
+                request.SimulatorType,
+                request.AircraftName,
+                request.VariantName,
+                request.TextureId,
+                request.AtcId),
+            CancellationToken.None);
     }
 }

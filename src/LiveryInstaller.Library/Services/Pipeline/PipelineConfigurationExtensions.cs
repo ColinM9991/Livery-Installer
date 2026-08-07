@@ -1,4 +1,4 @@
-﻿using LiveryInstaller.Library.Services.Pipeline.Steps;
+﻿using LiveryInstaller.Library.Services.Pipeline.Behaviours;
 using LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
 using LiveryInstaller.Library.Services.Pipeline.Steps.UninstallLiverySteps;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,14 +12,13 @@ public static class PipelineConfigurationExtensions
     {
         public IServiceCollection AddPipelineOperations()
         {
-            services.AddTransient<LiveryExtractionStep>();
-            services.AddTransient<LiveryInstallationStep>();
-            services.AddTransient<LiveryConfigurationStep>();
-            services.AddTransient<VariantInstallConfigurationStep>();
-
-            services.AddTransient<VariantUninstallConfigurationStep>();
-            services.AddTransient<LiveryConfigurationUninstallStep>();
-            services.AddTransient<LiveryUninstallationStep>();
+            services.Scan(x =>
+                x.FromAssemblyOf<LiveryPostInstallationStep>()
+                    .AddClasses(
+                        classes => classes.AssignableToAny(typeof(IPipelineStep<>), typeof(IPipelineBehaviour<>)),
+                        publicOnly: false)
+                    .AsSelf()
+                    .WithTransientLifetime());
 
             services.AddPipeline<LiveryInstallationContext>(cfg =>
                 {
@@ -27,7 +26,9 @@ public static class PipelineConfigurationExtensions
                         .AddStep<LiveryExtractionStep>()
                         .AddStep<LiveryInstallationStep>()
                         .AddStep<LiveryConfigurationStep>()
-                        .AddStep<VariantInstallConfigurationStep>();
+                        .AddStep<VariantInstallConfigurationStep>()
+                        .AddStep<LiveryPostInstallationStep>()
+                        .AddBehaviour<LoggingBehaviour<LiveryInstallationContext>>();
                 })
                 .AddPipeline<LiveryUninstallContext>(cfg =>
                 {

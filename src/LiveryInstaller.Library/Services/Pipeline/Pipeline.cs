@@ -1,17 +1,37 @@
-﻿namespace LiveryInstaller.Library.Services.Pipeline;
+﻿using System.Collections.Immutable;
+
+namespace LiveryInstaller.Library.Services.Pipeline;
 
 /// <inheritdoc />
 public sealed class Pipeline<TContext> : IPipeline<TContext>
 {
     private readonly IReadOnlyList<IPipelineStep<TContext>> _steps;
+    private readonly Stack<IPipelineBehaviour<TContext>> _behaviours;
 
-    public Pipeline(IEnumerable<IPipelineStep<TContext>> steps)
+    internal Pipeline(
+        IEnumerable<IPipelineStep<TContext>> steps,
+        Stack<IPipelineBehaviour<TContext>> behaviours)
     {
         _steps = [.. steps];
+        _behaviours = behaviours;
     }
 
     /// <inheritdoc />
-    public async Task ExecuteAsync(TContext context, CancellationToken cancellationToken)
+    public Task ExecuteAsync(TContext context, CancellationToken cancellationToken)
+    {
+        var pipeline = () => ExecuteStepsAsync(context, cancellationToken);
+
+        while (_behaviours.TryPop(out var behaviour))
+        {
+            var next = pipeline;
+            
+            pipeline = () => behaviour.ExecuteAsync(context, next, cancellationToken);
+        }
+
+        return pipeline();
+    }
+
+    private async Task ExecuteStepsAsync(TContext context, CancellationToken cancellationToken)
     {
         Stack<ICompensatableStep<TContext>> compensatableSteps = [];
 
