@@ -32,6 +32,7 @@ internal class PipelineBuilder<TContext> : IPipelineBuilder<TContext>
         return this;
     }
     
+    /// <inheritdoc />
     public IPipelineBuilder<TContext> AddBehaviour<TBehaviour>() where TBehaviour : class, IPipelineBehaviour<TContext>
     {
         _logger.LogDebug("Adding behaviour {BehaviourType}", typeof(TBehaviour));

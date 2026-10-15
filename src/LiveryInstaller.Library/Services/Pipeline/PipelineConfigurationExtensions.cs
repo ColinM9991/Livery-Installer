@@ -25,7 +25,7 @@ public static class PipelineConfigurationExtensions
                     cfg
                         .AddStep<LiveryExtractionStep>()
                         .AddStep<LiveryInstallationStep>()
-                        .AddStep<LiveryConfigurationStep>()
+                        .AddStep<LiveryConfigurationInstallationStep>()
                         .AddStep<VariantInstallConfigurationStep>()
                         .AddStep<LiveryPostInstallationStep>()
                         .AddBehaviour<LoggingBehaviour<LiveryInstallationContext>>();

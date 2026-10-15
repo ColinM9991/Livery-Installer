@@ -2,7 +2,7 @@
 
 namespace LiveryInstaller.Library.Services.Pipeline.Steps.InstallLiverySteps;
 
-internal sealed class LiveryConfigurationStep(IAircraftConfigurationService aircraftConfigurationService)
+internal sealed class LiveryConfigurationInstallationStep(IAircraftConfigurationService aircraftConfigurationService)
     : IPipelineStep<LiveryInstallationContext>, ICompensatableStep<LiveryInstallationContext>
 {
     public async Task ExecuteAsync(LiveryInstallationContext context, CancellationToken cancellationToken)

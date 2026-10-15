@@ -55,7 +55,7 @@ public sealed class AircraftConfigurationParser : IAircraftConfigurationParser<A
             // Parse Text
             if (currentNode is not null && await tokens.CheckAsync(IniTokenType.Text))
             {
-                var node = await ParseKeyValueAsync(tokens);
+                var node = await ParseTextAsync(tokens);
 
                 currentNode.Values.Add(node);
                 continue;
@@ -88,9 +88,28 @@ public sealed class AircraftConfigurationParser : IAircraftConfigurationParser<A
         };;
     }
 
-    private static async ValueTask<KeySectionValue> ParseKeyValueAsync(IniTokenStream tokens)
+    /// <summary>
+    /// PMDGs configuration files contain invalid and/or malformed key-value pairs.
+    /// For example:
+    /// atc_id=JA04KZ
+    /// atc_flight_numberKZ202
+    /// </summary>
+    /// <param name="tokens"></param>
+    /// <returns></returns>
+    private static async ValueTask<SectionValue> ParseTextAsync(IniTokenStream tokens)
     {
-        var lhs = await tokens.ExpectAsync(IniTokenType.Text);
+        var first = await tokens.ExpectAsync(IniTokenType.Text);
+        var next = await tokens.PeekAsync();
+        if (next.Type == IniTokenType.Equals)
+        {
+            return await ParseKeyValueAsync(first, tokens);
+        }
+        
+        return new StringSectionValue(first.Value);
+    }
+
+    private static async ValueTask<KeySectionValue> ParseKeyValueAsync(IniToken lhs, IniTokenStream tokens)
+    {
         var keyValue = lhs.Value ?? throw new FormatException("Key value cannot be null");
 
         _ = await tokens.ExpectAsync(IniTokenType.Equals);
